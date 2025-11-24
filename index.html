@@ -1,0 +1,1571 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ana Machado Boutique - Looks casuais para o dia a dia</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Looks casuais, femininos e versáteis para o dia a dia. Descubra as peças da Ana Machado Boutique e compre direto pelo WhatsApp." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --color-primary: #C96A4A;
+      --color-primary-dark: #a35237;
+      --color-secondary: #E6B8A2;
+      --color-bg: #FFFFFF;
+      --color-bg-soft: #FFF7F2;
+      --color-text: #222222;
+      --color-text-soft: #666666;
+      --shadow-soft: 0 10px 25px rgba(0, 0, 0, 0.06);
+      --radius-lg: 18px;
+      --radius-xl: 24px;
+      --transition-fast: 0.2s ease-out;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background-color: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    img {
+      max-width: 100%;
+      display: block;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    button {
+      font-family: inherit;
+    }
+
+    /* UTILITÁRIOS */
+    .container {
+      width: 100%;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      padding: 0.9rem 1.6rem;
+      border-radius: 999px;
+      border: none;
+      background: var(--color-primary);
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 10px 18px rgba(201, 106, 74, 0.35);
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px) scale(1.02);
+      background: var(--color-primary-dark);
+      box-shadow: 0 12px 24px rgba(201, 106, 74, 0.45);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--color-primary);
+      border: 1px solid rgba(201, 106, 74, 0.5);
+      box-shadow: none;
+    }
+
+    .btn-outline:hover {
+      background: rgba(201, 106, 74, 0.08);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.06);
+    }
+
+    .section {
+      padding: 3.5rem 0;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .section-kicker {
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-primary);
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+    }
+
+    .section-title {
+      font-size: 1.6rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .section-subtitle {
+      font-size: 0.95rem;
+      color: var(--color-text-soft);
+      max-width: 520px;
+      margin: 0.2rem auto 0;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.3rem 0.9rem;
+      border-radius: 999px;
+      background: rgba(230, 184, 162, 0.2);
+      color: var(--color-primary-dark);
+      font-size: 0.75rem;
+      font-weight: 500;
+      gap: 0.35rem;
+    }
+
+    .tag {
+      display: inline-flex;
+      padding: 0.2rem 0.7rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      background: rgba(201, 106, 74, 0.08);
+      color: var(--color-primary-dark);
+      font-weight: 600;
+    }
+
+    .grid {
+      display: grid;
+      gap: 1.4rem;
+    }
+
+    .fade-in {
+      opacity: 0;
+      transform: translateY(15px);
+      transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+    }
+
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* HEADER FIXO */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      backdrop-filter: blur(18px);
+      background: linear-gradient(to bottom, rgba(255,255,255,0.96), rgba(255,255,255,0.9));
+      border-bottom: 1px solid rgba(0,0,0,0.03);
+    }
+
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.8rem 0;
+      gap: 1rem;
+    }
+
+    .logo {
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+    }
+
+    .logo-main {
+      font-weight: 600;
+      letter-spacing: 0.09em;
+      font-size: 0.95rem;
+      text-transform: uppercase;
+    }
+
+    .logo-sub {
+      font-size: 0.7rem;
+      color: var(--color-text-soft);
+    }
+
+    .nav {
+      display: none;
+      gap: 1.1rem;
+      font-size: 0.85rem;
+      color: var(--color-text-soft);
+    }
+
+    .nav a {
+      position: relative;
+      padding-bottom: 0.15rem;
+    }
+
+    .nav a::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 0;
+      height: 2px;
+      background: var(--color-primary);
+      border-radius: 999px;
+      transition: width var(--transition-fast);
+    }
+
+    .nav a:hover::after {
+      width: 18px;
+    }
+
+    .header-cta {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .menu-toggle {
+      border: none;
+      background: transparent;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .mobile-nav {
+      display: none;
+      flex-direction: column;
+      gap: 0.8rem;
+      padding-bottom: 0.9rem;
+    }
+
+    .mobile-nav a {
+      font-size: 0.95rem;
+      color: var(--color-text-soft);
+    }
+
+    /* HERO */
+    .hero {
+      padding: 3.5rem 0 3rem;
+    }
+
+    .hero-inner {
+      display: grid;
+      gap: 2rem;
+      align-items: center;
+    }
+
+    .hero-badge-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .hero-title {
+      font-size: 2rem;
+      line-height: 1.15;
+      margin-bottom: 0.8rem;
+    }
+
+    .hero-title span {
+      color: var(--color-primary);
+    }
+
+    .hero-subtitle {
+      font-size: 0.95rem;
+      color: var(--color-text-soft);
+      margin-bottom: 1.2rem;
+    }
+
+    .hero-cta-row {
+      display: flex;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.2rem;
+    }
+
+    .hero-highlights {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.9rem;
+      font-size: 0.75rem;
+      color: var(--color-text-soft);
+    }
+
+    .hero-highlights span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .hero-highlights span::before {
+      content: "•";
+      color: var(--color-primary);
+      font-size: 1.1rem;
+    }
+
+    .hero-media {
+      position: relative;
+    }
+
+    .hero-main-img {
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .hero-floating-card {
+      position: absolute;
+      left: 0.6rem;
+      bottom: 0.6rem;
+      padding: 0.7rem 0.9rem;
+      border-radius: 16px;
+      background: rgba(255, 247, 242, 0.96);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+      font-size: 0.7rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      max-width: 200px;
+    }
+
+    .hero-floating-card strong {
+      font-size: 0.8rem;
+    }
+
+    .hero-floating-card small {
+      color: var(--color-text-soft);
+    }
+
+    /* DESTAQUES */
+    .highlight-grid {
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    }
+
+    .product-card {
+      background: var(--color-bg-soft);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+      position: relative;
+    }
+
+    .product-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 30px rgba(0,0,0,0.12);
+    }
+
+    .product-image-wrap {
+      position: relative;
+      overflow: hidden;
+      max-height: 310px;
+    }
+
+    .product-image-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.35s ease-out;
+      cursor: pointer;
+    }
+
+    .product-card:hover img {
+      transform: scale(1.03);
+    }
+
+    .product-tag {
+      position: absolute;
+      left: 0.7rem;
+      top: 0.7rem;
+    }
+
+    .fav-btn {
+      position: absolute;
+      right: 0.7rem;
+      top: 0.7rem;
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      border: none;
+      background: rgba(255,255,255,0.75);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: transform var(--transition-fast), background var(--transition-fast);
+    }
+
+    .fav-btn:hover {
+      transform: scale(1.08);
+      background: #fff;
+    }
+
+    .fav-btn.active {
+      color: #e63946;
+    }
+
+    .product-body {
+      padding: 0.9rem 1rem 1.05rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .product-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .product-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      color: var(--color-text-soft);
+    }
+
+    .product-actions {
+      margin-top: 0.7rem;
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border-radius: 999px;
+      border: none;
+      font-size: 0.78rem;
+      padding: 0.45rem 0.8rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      cursor: pointer;
+      color: var(--color-text-soft);
+      transition: background var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+    }
+
+    .btn-ghost:hover {
+      background: rgba(0,0,0,0.03);
+      color: var(--color-primary-dark);
+      transform: translateY(-1px);
+    }
+
+    /* COLEÇÕES */
+    .collections-grid {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .collection-card {
+      border-radius: var(--radius-lg);
+      padding: 1.1rem 1.1rem 1.2rem;
+      background: var(--color-bg-soft);
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .collection-card h3 {
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .collection-card p {
+      font-size: 0.85rem;
+      color: var(--color-text-soft);
+    }
+
+    /* GRADE DE PRODUTOS + FILTRO */
+    .product-filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-bottom: 1.7rem;
+    }
+
+    .filter-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(0,0,0,0.06);
+      padding: 0.45rem 0.95rem;
+      font-size: 0.78rem;
+      background: #fff;
+      color: var(--color-text-soft);
+      cursor: pointer;
+      transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+    }
+
+    .filter-btn.active {
+      background: var(--color-primary);
+      color: #fff;
+      border-color: var(--color-primary);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 18px rgba(201,106,74,0.35);
+    }
+
+    .products-grid {
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+
+    .product-card.hidden {
+      display: none;
+    }
+
+    /* COMO COMPRAR E BENEFÍCIOS */
+    .steps-grid {
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    }
+
+    .step-card,
+    .benefit-card {
+      background: var(--color-bg-soft);
+      border-radius: var(--radius-lg);
+      padding: 1.1rem 1.1rem 1.15rem;
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      font-size: 0.9rem;
+    }
+
+    .step-badge {
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      background: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--color-primary);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+      margin-bottom: 0.3rem;
+    }
+
+    .step-card h3,
+    .benefit-card h3 {
+      font-size: 0.95rem;
+    }
+
+    .step-card p,
+    .benefit-card p {
+      font-size: 0.85rem;
+      color: var(--color-text-soft);
+    }
+
+    /* DEPOIMENTOS */
+    .testimonials-wrap {
+      display: grid;
+      gap: 1.4rem;
+    }
+
+    .testimonial-card {
+      background: var(--color-bg-soft);
+      border-radius: var(--radius-lg);
+      padding: 1.2rem 1.2rem 1.1rem;
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+      font-size: 0.88rem;
+    }
+
+    .testimonial-text {
+      color: var(--color-text-soft);
+      font-style: italic;
+    }
+
+    .testimonial-author {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .testimonial-meta {
+      font-size: 0.8rem;
+      color: var(--color-text-soft);
+    }
+
+    /* CTA FINAL */
+    .cta-final {
+      background: radial-gradient(circle at top left, rgba(201, 106, 74, 0.1), transparent 45%),
+                  radial-gradient(circle at bottom right, rgba(230, 184, 162, 0.18), transparent 50%),
+                  #fff;
+      border-radius: 32px;
+      padding: 2.1rem 1.6rem;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.12);
+      text-align: center;
+    }
+
+    .cta-final h2 {
+      font-size: 1.4rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .cta-final p {
+      font-size: 0.95rem;
+      color: var(--color-text-soft);
+      margin-bottom: 1.3rem;
+    }
+
+    /* FOOTER */
+    footer {
+      padding: 2rem 0 1.5rem;
+      border-top: 1px solid rgba(0,0,0,0.06);
+      margin-top: 2rem;
+    }
+
+    .footer-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+      font-size: 0.8rem;
+      color: var(--color-text-soft);
+    }
+
+    .footer-top {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+    }
+
+    .footer-links a {
+      font-size: 0.8rem;
+    }
+
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+    }
+
+    /* BOTÃO WHATSAPP FLUTUANTE */
+    .whatsapp-float {
+      position: fixed;
+      right: 1.2rem;
+      bottom: 1.2rem;
+      z-index: 50;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 52px;
+      height: 52px;
+      border-radius: 999px;
+      background: #25D366;
+      color: #fff;
+      font-size: 1.6rem;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.3);
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast), visibility var(--transition-fast);
+      cursor: pointer;
+    }
+
+    .whatsapp-float:hover {
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 22px 50px rgba(0,0,0,0.35);
+    }
+
+    .whatsapp-float.hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    /* BOTÃO VOLTAR AO TOPO */
+    .back-to-top {
+      position: fixed;
+      right: 1.2rem;
+      bottom: 4.5rem;
+      z-index: 40;
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      border: none;
+      background: #fff;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.1rem;
+      color: var(--color-primary-dark);
+      transition: transform var(--transition-fast), opacity var(--transition-fast), visibility var(--transition-fast);
+    }
+
+    .back-to-top.hidden {
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(6px);
+    }
+
+    /* MODAL DE IMAGEM */
+    .image-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 60;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s ease-out, visibility 0.2s ease-out;
+      padding: 1.5rem;
+    }
+
+    .image-modal-backdrop.open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .image-modal-content {
+      max-width: 480px;
+      width: 100%;
+      border-radius: 20px;
+      overflow: hidden;
+      background: #000;
+      position: relative;
+    }
+
+    .image-modal-content img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .image-modal-close {
+      position: absolute;
+      right: 0.6rem;
+      top: 0.6rem;
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.1rem;
+    }
+
+    /* RESPONSIVO */
+    @media (min-width: 720px) {
+      .hero {
+        padding: 4rem 0 3.5rem;
+      }
+
+      .hero-inner {
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      }
+
+      .hero-title {
+        font-size: 2.35rem;
+      }
+
+      .hero-floating-card {
+        left: auto;
+        right: 1.1rem;
+        bottom: 1.1rem;
+      }
+
+      .nav {
+        display: flex;
+      }
+
+      .menu-toggle {
+        display: none;
+      }
+
+      .footer-inner {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .footer-top {
+        flex-direction: row;
+        align-items: center;
+      }
+
+      .testimonials-wrap {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (min-width: 960px) {
+      .hero-title {
+        font-size: 2.6rem;
+      }
+
+      .cta-final {
+        padding: 2.5rem 2.4rem;
+        text-align: left;
+        display: grid;
+        grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+        align-items: center;
+        gap: 1.6rem;
+      }
+
+      .cta-final-actions {
+        justify-content: flex-end;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- BOTÃO FLUTUANTE WHATSAPP -->
+  <a href="https://wa.me/553195801842?text=Oi%20Ana%2C%20quero%20ver%20os%20looks%20da%20Ana%20Machado%20Boutique%20%F0%9F%91%97"
+     class="whatsapp-float"
+     target="_blank"
+     rel="noopener noreferrer"
+     aria-label="Falar com a Ana Machado Boutique pelo WhatsApp">
+    &#128172;
+  </a>
+
+  <!-- VOLTAR AO TOPO -->
+  <button class="back-to-top hidden" aria-label="Voltar ao topo">
+    &#8593;
+  </button>
+
+  <!-- MODAL DE IMAGEM -->
+  <div class="image-modal-backdrop" id="image-modal">
+    <div class="image-modal-content">
+      <button class="image-modal-close" id="close-modal" aria-label="Fechar imagem ampliada">&times;</button>
+      <img src="" alt="Look Ana Machado Boutique" id="modal-img">
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <header>
+    <div class="container">
+      <div class="header-inner">
+        <div class="logo">
+          <span class="logo-main">ANA MACHADO</span>
+          <span class="logo-sub">Boutique feminina</span>
+        </div>
+
+        <nav class="nav">
+          <a href="#inicio" data-scroll>Início</a>
+          <a href="#novidades" data-scroll>Novidades</a>
+          <a href="#colecoes" data-scroll>Coleções</a>
+          <a href="#como-comprar" data-scroll>Como comprar</a>
+          <a href="#depoimentos" data-scroll>Depoimentos</a>
+          <a href="#contato" data-scroll>Contato</a>
+        </nav>
+
+        <div class="header-cta">
+          <button class="btn-outline" onclick="window.open('https://www.instagram.com/anamachado_boutique/', '_blank')">
+            Instagram
+          </button>
+          <button class="btn" onclick="window.open('https://wa.me/553195801842?text=Oi%20Ana%2C%20quero%20ver%20os%20looks%20da%20Ana%20Machado%20Boutique%20%F0%9F%91%97', '_blank')">
+            Comprar no Whats
+          </button>
+          <button class="menu-toggle" aria-label="Abrir menu">&#9776;</button>
+        </div>
+      </div>
+
+      <nav class="mobile-nav" id="mobile-nav">
+        <a href="#inicio" data-scroll>Início</a>
+        <a href="#novidades" data-scroll>Novidades</a>
+        <a href="#colecoes" data-scroll>Coleções</a>
+        <a href="#como-comprar" data-scroll>Como comprar</a>
+        <a href="#depoimentos" data-scroll>Depoimentos</a>
+        <a href="#contato" data-scroll>Contato</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="inicio">
+    <!-- HERO -->
+    <section class="hero">
+      <div class="container">
+        <div class="hero-inner">
+          <div class="hero-copy fade-in">
+            <div class="hero-badge-row">
+              <div class="pill">
+                <span>🤍</span>
+                Looks casuais para o dia a dia
+              </div>
+              <span style="font-size:0.8rem; color:var(--color-text-soft);">Belo Horizonte · MG</span>
+            </div>
+            <h1 class="hero-title">
+              Seu look favorito <span>para todos os dias</span>.
+            </h1>
+            <p class="hero-subtitle">
+              Peças femininas, leves e versáteis para você se sentir linda na rotina:
+              trabalho, faculdade, almoço com as amigas ou fim de semana relax.
+            </p>
+
+            <div class="hero-cta-row">
+              <button class="btn" onclick="window.open('https://wa.me/553195801842?text=Oi%20Ana%2C%20quero%20ver%20os%20looks%20da%20Ana%20Machado%20Boutique%20%F0%9F%91%97', '_blank')">
+                Comprar pelo WhatsApp
+              </button>
+              <button class="btn-outline" onclick="window.open('https://www.instagram.com/anamachado_boutique/', '_blank')">
+                Ver looks no Instagram
+              </button>
+            </div>
+
+            <div class="hero-highlights">
+              <span>Curadoria de looks casuais</span>
+              <span>Atendimento humanizado</span>
+              <span>Peças que vestem a vida real</span>
+            </div>
+          </div>
+
+          <div class="hero-media fade-in">
+            <div class="hero-main-img">
+              <!-- TROQUE ESSA IMAGEM PELO SEU LOOK PRINCIPAL -->
+              <img src="assets/hero-look-principal.jpg" alt="Look casual Ana Machado Boutique">
+            </div>
+            <div class="hero-floating-card">
+              <strong>Look da semana</strong>
+              <small>Macaquinho leve + sandália comfy — perfeito para dias de sol em BH.</small>
+              <span class="tag">Novidade</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NOVIDADES & DESTAQUES -->
+    <section class="section" id="novidades">
+      <div class="container">
+        <header class="section-header">
+          <p class="section-kicker">Novidades & Destaques</p>
+          <h2 class="section-title">Peças que estão saindo muito na boutique</h2>
+          <p class="section-subtitle">
+            Alguns dos looks queridinhos das clientes. Você pode trocar as fotos e nomes
+            das peças aqui sempre que quiser.
+          </p>
+        </header>
+
+        <div class="grid highlight-grid">
+          <!-- CARD 1 -->
+          <article class="product-card fade-in">
+            <div class="product-image-wrap">
+              <span class="product-tag tag">Look da semana</span>
+              <button class="fav-btn" type="button" aria-label="Favoritar">&#10084;</button>
+              <!-- SUBSTITUA PELA FOTO QUE QUISER -->
+              <img src="assets/look-macaquinho-bella.jpg" alt="Macaquinho Bella" data-modal-image>
+            </div>
+            <div class="product-body">
+              <h3 class="product-name">Macaquinho Bella</h3>
+              <div class="product-meta">
+                <span>Leve, fresco e elegante</span>
+                <span>Dia a dia</span>
+              </div>
+              <div class="product-actions">
+                <button class="btn" onclick="window.open('https://wa.me/553195801842?text=Oi%20Ana%2C%20amei%20o%20Macaquinho%20Bella%20%F0%9F%91%97', '_blank')">
+                  Comprar no Whats
+                </button>
+                <button class="btn-ghost" type="button">
+                  Ver detalhes
+                </button>
+              </div>
+            </div>
+          </article>
+
+          <!-- CARD 2 -->
+          <article class="product-card fade-in">
+            <div class="product-image-wrap">
+              <span class="product-tag tag">Best seller</span>
+              <button class="fav-btn" type="button" aria-label="Favoritar">&#10084;</button>
+              <img src="assets/look-body-lari.jpg" alt="Body Lari Canelado" data-modal-image>
+            </div>
+            <div class="product-body">
+              <h3 class="product-name">Body Lari Canelado</h3>
+              <div class="product-meta">
+                <span>Combine com shorts, saia ou calça</span>
+                <span>Versátil</span>
+              </div>
+              <div class="product-actions">
+                <button class="btn" onclick="window.open('https://wa.me/553195801842?text=Oi%20Ana%2C%20amei%20o%20Body%20Lari%20Canelado%20%F0%9F%91%97', '_blank')">
+                  Comprar no Whats
+                </button>
+                <button class="btn-ghost" type="button">
+                  Ver detalhes
+                </button>
+              </div>
+            </div>
+          </article>
+
+          <!-- CARD 3 -->
+          <article class="product-card fade-in">
+            <div class="product-image-wrap">
+              <span class="product-tag tag">Novo</span>
+              <button class="fav-btn" type="button" aria-label="Favoritar">&#10084;</button>
+              <img src="assets/look-conjunto-helena.jpg" alt="Conjunto Helena" data-modal-image>
+            </div>
+            <div class="product-body">
+              <h3 class="product-name">Conjunto Helena</h3>
+              <div class="product-meta">
+                <span>Cropped + saia para dias de sol</span>
+                <span>Fim de semana</span>
+              </div>
+              <div class="product-actions">
+                <button class="btn" onclick="window.open('https://wa.me/553195801842?text=Oi%20Ana%2C%20amei%20o%20Conjunto%20Helena%20%F0%9F%91%97', '_blank')">
+                  Comprar no Whats
+                </button>
+                <button class="btn-ghost" type="button">
+                  Ver detalhes
+                </button>
+              </div>
+            </div>
+          </article>
+
+          <!-- CARD 4 -->
+          <article class="product-card fade-in">
+            <div class="product-image-wrap">
+              <span class="product-tag tag">Essencial</span>
+              <button class="fav-btn" type="button" aria-label="Favoritar">&#10084;</button>
+              <img src="assets/look-regata-basica.jpg" alt="Regata básica canelada" data-modal-image>
+            </div>
+            <div class="product-body">
+              <h3 class="product-name">Regata Básica Canelada</h3>
+              <div class="product-meta">
+                <span>Perfeita para montar vários looks</span>
+                <span>Essencial</span>
+              </div>
+              <div class="product-actions">
+                <button class="btn" onclick="window.open('https://wa.me/553195801842?text=Oi%20Ana%2C%20amei%20a%20Regata%20B%C3%A1sica%20Canelada%20%F0%9F%91%97', '_blank')">
+                  Comprar no Whats
+                </button>
+                <button class="btn-ghost" type="button">
+                  Ver detalhes
+                </button>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- COLEÇÕES / ESTILOS -->
+    <section class="section" id="colecoes">
+      <div class="container">
+        <header class="section-header">
+          <p class="section-kicker">Coleções & Estilos</p>
+          <h2 class="section-title">Looks para cada momento do seu dia</h2>
+          <p class="section-subtitle">
+            Da correria do trabalho ao almoço de domingo. Aqui você encontra peças que acompanham a sua rotina.
+          </p>
+        </header>
+
+        <div class="grid collections-grid">
+          <article class="collection-card fade-in">
+            <h3>Dia a dia leve</h3>
+            <p>Shorts, regatas, bodies e macaquinhos que combinam conforto e estilo para você se sentir linda até nas tarefas mais simples.</p>
+          </article>
+
+          <article class="collection-card fade-in">
+            <h3>Trabalho & reuniões</h3>
+            <p>Calças, conjuntos e peças que deixam o visual arrumadinho sem perder a leveza — perfeitas para escritório ou home office.</p>
+          </article>
+
+          <article class="collection-card fade-in">
+            <h3>Finais de semana</h3>
+            <p>Looks para almoço em família, encontro com as amigas ou passeio no parque. Peças que funcionam na vida real.</p>
+          </article>
+
+          <article class="collection-card fade-in">
+            <h3>Noite & ocasiões especiais</h3>
+            <p>Produções mais marcantes, com brilho ou modelagens especiais para quando você quer se sentir ainda mais poderosa.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- TODOS OS LOOKS / GRADE EDITÁVEL -->
+    <section class="section" id="produtos">
+      <div class="container">
+        <header class="section-header">
+          <p class="section-kicker">Todos os looks</p>
+          <h2 class="section-title">Escolha seus favoritos e chame no Whats</h2>
+          <p class="section-subtitle">
+            Use esta grade como vitrine geral. Basta trocar as imagens e os nomes: os botões já levam direto para o WhatsApp.
+          </p>
+        </header>
+
+        <!-- BARRA DE FILTRO -->
+        <div class="product-filter-bar">
+          <button class="filter-btn active" data-filter="all">Todos</button>
+          <button class="filter-btn" data-filter="macaquinho">Macaquinhos</button>
+          <button class="filter-btn" data-filter="conjunto">Conjuntos</button>
+          <button class="filter-btn" data-filter="cropped">Croppeds & tops</button>
+          <button class="filter-btn" data-filter="vestido">Vestidos</button>
+          <button class="filter-btn" data-filter="calca">Calças & shorts</button>
+          <button class="filter-btn" data-filter="macacao">Macacões</button>
+        </div>
+
+        <!-- GRADE DE PRODUTOS -->
+        <div class="grid products-grid">
+          <!-- Exemplo de produto - você pode DUPLICAR esse bloco -->
+          <article class="product-card fade-in" data-category="macaquinho">
+            <div class="product-image-wrap">
+              <button class="fav-btn" type="button" aria-label="Favoritar">&#10084;</button>
+              <img src="assets/produto-macaquinho-branco.jpg" alt="Macaquinho branco leve" data-modal-image>
+            </div>
+            <div class="product-body">
+              <h3 class="product-name">Macaquinho Branco Leve</h3>
+              <div class="product-meta">
+                <span>Macaquinho</span>
+                <span>Dia a dia</span>
+              </div>
+              <div class="product-actions">
+                <button class="btn" onclick="window.open('https://wa.me/553195801842?text=Oi%20Ana%2C%20amei%20o%20Macaquinho%20Branco%20Leve%20%F0%9F%91%97', '_blank')">
+                  Comprar no Whats
+                </button>
+                <button class="btn-ghost" type="button">
+                  Guardar favorito
+                </button>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card fade-in" data-category="conjunto">
+            <div class="product-image-wrap">
+              <button class="fav-btn" type="button" aria-label="Favoritar">&#10084;</button>
+              <img src="assets/produto-conjunto-tricot-azul.jpg" alt="Conjunto em tricot azul" data-modal-image>
+            </div>
+            <div class="product-body">
+              <h3 class="product-name">Conjunto Tricot Azul</h3>
+              <div class="product-meta">
+                <span>Conjunto</span>
+                <span>Fim de semana</span>
+              </div>
+              <div class="product-actions">
+                <button class="btn" onclick="window.open('https://wa.me/553195801842?text=Oi%20Ana%2C%20amei%20o%20Conjunto%20Tricot%20Azul%20%F0%9F%91%97', '_blank')">
+                  Comprar no Whats
+                </button>
+                <button class="btn-ghost" type="button">
+                  Guardar favorito
+                </button>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card fade-in" data-category="calca">
+            <div class="product-image-wrap">
+              <button class="fav-btn" type="button" aria-label="Favoritar">&#10084;</button>
+              <img src="assets/produto-calca-branca.jpg" alt="Calça branca leve" data-modal-image>
+            </div>
+            <div class="product-body">
+              <h3 class="product-name">Calça Branca Leve</h3>
+              <div class="product-meta">
+                <span>Calça</span>
+                <span>Trabalho & dia a dia</span>
+              </div>
+              <div class="product-actions">
+                <button class="btn" onclick="window.open('https://wa.me/553195801842?text=Oi%20Ana%2C%20amei%20a%20Cal%C3%A7a%20Branca%20Leve%20%F0%9F%91%97', '_blank')">
+                  Comprar no Whats
+                </button>
+                <button class="btn-ghost" type="button">
+                  Guardar favorito
+                </button>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card fade-in" data-category="cropped">
+            <div class="product-image-wrap">
+              <button class="fav-btn" type="button" aria-label="Favoritar">&#10084;</button>
+              <img src="assets/produto-cropped-preto.jpg" alt="Cropped preto drapeado" data-modal-image>
+            </div>
+            <div class="product-body">
+              <h3 class="product-name">Cropped Preto Drapeado</h3>
+              <div class="product-meta">
+                <span>Cropped</span>
+                <span>Noite & ocasiões</span>
+              </div>
+              <div class="product-actions">
+                <button class="btn" onclick="window.open('https://wa.me/553195801842?text=Oi%20Ana%2C%20amei%20o%20Cropped%20Preto%20Drapeado%20%F0%9F%91%97', '_blank')">
+                  Comprar no Whats
+                </button>
+                <button class="btn-ghost" type="button">
+                  Guardar favorito
+                </button>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card fade-in" data-category="macacao">
+            <div class="product-image-wrap">
+              <button class="fav-btn" type="button" aria-label="Favoritar">&#10084;</button>
+              <img src="assets/produto-macacao-azul.jpg" alt="Macacão azul elegante" data-modal-image>
+            </div>
+            <div class="product-body">
+              <h3 class="product-name">Macacão Azul Elegante</h3>
+              <div class="product-meta">
+                <span>Macacão</span>
+                <span>Arrumado & confortável</span>
+              </div>
+              <div class="product-actions">
+                <button class="btn" onclick="window.open('https://wa.me/553195801842?text=Oi%20Ana%2C%20amei%20o%20Macac%C3%A3o%20Azul%20Elegante%20%F0%9F%91%97', '_blank')">
+                  Comprar no Whats
+                </button>
+                <button class="btn-ghost" type="button">
+                  Guardar favorito
+                </button>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card fade-in" data-category="calca">
+            <div class="product-image-wrap">
+              <button class="fav-btn" type="button" aria-label="Favoritar">&#10084;</button>
+              <img src="assets/produto-short-rosa.jpg" alt="Short rosa alfaiataria" data-modal-image>
+            </div>
+            <div class="product-body">
+              <h3 class="product-name">Short Rosa Alfaiataria</h3>
+              <div class="product-meta">
+                <span>Short</span>
+                <span>Dia a dia</span>
+              </div>
+              <div class="product-actions">
+                <button class="btn" onclick="window.open('https://wa.me/553195801842?text=Oi%20Ana%2C%20amei%20o%20Short%20Rosa%20Alfaiataria%20%F0%9F%91%97', '_blank')">
+                  Comprar no Whats
+                </button>
+                <button class="btn-ghost" type="button">
+                  Guardar favorito
+                </button>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <p style="margin-top:1.4rem; font-size:0.8rem; color:var(--color-text-soft); text-align:center;">
+          Dica: para adicionar novos produtos, basta duplicar um card, trocar a imagem, o nome da peça
+          e ajustar o <strong>data-category</strong> (macaquinho, conjunto, cropped, vestido, calca, macacao).
+        </p>
+      </div>
+    </section>
+
+    <!-- COMO COMPRAR -->
+    <section class="section" id="como-comprar">
+      <div class="container">
+        <header class="section-header">
+          <p class="section-kicker">Como funciona</p>
+          <h2 class="section-title">Compre seus looks direto pelo WhatsApp</h2>
+          <p class="section-subtitle">
+            É simples, rápido e com atendimento bem pertinho de você.
+          </p>
+        </header>
+
+        <div class="grid steps-grid">
+          <article class="step-card fade-in">
+            <span class="step-badge">1</span>
+            <h3>Escolha seus looks favoritos</h3>
+            <p>Role a página, veja as fotos e separe as peças que combinam com o seu estilo e o seu dia a dia.</p>
+          </article>
+
+          <article class="step-card fade-in">
+            <span class="step-badge">2</span>
+            <h3>Clique em “Comprar no Whats”</h3>
+            <p>O botão já abre uma conversa com a Ana no WhatsApp com a peça selecionada. Você não precisa decorar o nome.</p>
+          </article>
+
+          <article class="step-card fade-in">
+            <span class="step-badge">3</span>
+            <h3>Combine tamanho, pagamento & entrega</h3>
+            <p>Você tira todas as dúvidas, ajusta tamanho, forma de pagamento e entrega direto com a loja.</p>
+          </article>
+
+          <article class="step-card fade-in">
+            <span class="step-badge">4</span>
+            <h3>Receba seu look & use muito</h3>
+            <p>Looks pensados para a vida real, que você repete sem medo e combina com várias peças do seu guarda-roupa.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- BENEFÍCIOS -->
+    <section class="section">
+      <div class="container">
+        <header class="section-header">
+          <p class="section-kicker">Por que a Ana Machado Boutique</p>
+          <h2 class="section-title">Moda real para mulheres reais</h2>
+        </header>
+
+        <div class="grid steps-grid">
+          <article class="benefit-card fade-in">
+            <h3>Curadoria pensada para o dia a dia</h3>
+            <p>Peças casuais que funcionam na rotina, sem ser “look de uma vez só”. Você consegue repetir e combinar.</p>
+          </article>
+
+          <article class="benefit-card fade-in">
+            <h3>Atendimento próximo e humanizado</h3>
+            <p>Você conversa direto com a Ana pelo WhatsApp para tirar dúvidas, pedir sugestões e montar looks completos.</p>
+          </article>
+
+          <article class="benefit-card fade-in">
+            <h3>Feminino, leve e atual</h3>
+            <p>Uma pegada clean, com muito branco, azul, rosé e nude que combina com a vida em BH e com o seu estilo.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- DEPOIMENTOS -->
+    <section class="section" id="depoimentos">
+      <div class="container">
+        <header class="section-header">
+          <p class="section-kicker">Depoimentos</p>
+          <h2 class="section-title">O que as clientes falam da boutique</h2>
+          <p class="section-subtitle">
+            Você pode trocar esses depoimentos depois pelos comentários reais das clientes e prints do Instagram.
+          </p>
+        </header>
+
+        <div class="testimonials-wrap">
+          <article class="testimonial-card fade-in">
+            <p class="testimonial-text">
+              “Amo os looks da Ana Machado! Sempre encontro peças que uso no trabalho e no fim de semana, e o atendimento pelo Whats é super rápido.”
+            </p>
+            <div>
+              <p class="testimonial-author">Mariana S.</p>
+              <p class="testimonial-meta">Cliente da Ana Machado Boutique</p>
+            </div>
+          </article>
+
+          <article class="testimonial-card fade-in">
+            <p class="testimonial-text">
+              “Gosto muito da curadoria da loja. As peças têm cara de vida real, nada exagerado, e vestem super bem.”
+            </p>
+            <div>
+              <p class="testimonial-author">Carolina F.</p>
+              <p class="testimonial-meta">BH · MG</p>
+            </div>
+          </article>
+
+          <article class="testimonial-card fade-in">
+            <p class="testimonial-text">
+              “Comprei alguns conjuntos e macaquinhos e uso demais! A Ana me ajudou a escolher os tamanhos certinhos pelo Whats.”
+            </p>
+            <div>
+              <p class="testimonial-author">Isabela R.</p>
+              <p class="testimonial-meta">Cliente recorrente</p>
+            </div>
+          </article>
+        </div>
+
+        <div style="text-align:center; margin-top:1.7rem;">
+          <button class="btn-outline" onclick="window.open('https://www.instagram.com/anamachado_boutique/', '_blank')">
+            Ver mais looks e feedbacks no Instagram
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA FINAL -->
+    <section class="section" id="contato">
+      <div class="container">
+        <div class="cta-final fade-in">
+          <div>
+            <h2>Pronta para escolher seus próximos looks?</h2>
+            <p>
+              Clique no botão abaixo para falar com a Ana pelo WhatsApp,
+              tirar dúvidas e ver as peças disponíveis hoje na Ana Machado Boutique.
+            </p>
+          </div>
+          <div class="cta-final-actions">
+            <button class="btn" onclick="window.open('https://wa.me/553195801842?text=Oi%20Ana%2C%20quero%20ver%20os%20looks%20da%20Ana%20Machado%20Boutique%20%F0%9F%91%97', '_blank')">
+              Falar com a Ana no Whats
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-top">
+          <div class="logo">
+            <span class="logo-main">ANA MACHADO</span>
+            <span class="logo-sub">Boutique feminina • Belo Horizonte</span>
+          </div>
+          <div class="footer-links">
+            <a href="https://www.instagram.com/anamachado_boutique/" target="_blank" rel="noopener noreferrer">
+              Instagram: @anamachado_boutique
+            </a>
+            <a href="https://wa.me/553195801842" target="_blank" rel="noopener noreferrer">
+              WhatsApp: (31) 9580-1842
+            </a>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <span>© <span id="year"></span> Ana Machado Boutique. Todos os direitos reservados.</span>
+          <span style="font-size:0.78rem;">Feito com carinho para mulheres reais. 🤍</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Ano automático no footer
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    // MENU MOBILE
+    const menuToggle = document.querySelector(".menu-toggle");
+    const mobileNav = document.getElementById("mobile-nav");
+
+    if (menuToggle && mobileNav) {
+      menuToggle.addEventListener("click", () => {
+        const isVisible = mobileNav.style.display === "flex";
+        mobileNav.style.display = isVisible ? "none" : "flex";
+      });
+
+      // Fecha menu ao clicar em um link
+      mobileNav.querySelectorAll("a[data-scroll]").forEach(link => {
+        link.addEventListener("click", () => {
+          mobileNav.style.display = "none";
+        });
+      });
+    }
+
+    // SCROLL SUAVE
+    document.querySelectorAll("a[data-scroll]").forEach(link => {
+      link.addEventListener("click", event => {
+        event.preventDefault();
+        const targetId = link.getAttribute("href").replace("#", "");
+        const target = document.getElementById(targetId);
+        if (target) {
+          const offset = 80; // altura aproximada do header
+          const top = target.getBoundingClientRect().top + window.scrollY - offset;
+          window.scrollTo({ top, behavior: "smooth" });
+        }
+      });
+    });
+
+    // BOTÃO VOLTAR AO TOPO + WHATS FLUTUANTE
+    const backToTopBtn = document.querySelector(".back-to-top");
+    const whatsappFloat = document.querySelector(".whatsapp-float");
+    window.addEventListener("scroll", () => {
+      const scrolled = window.scrollY;
+
+      if (scrolled > 400) {
+        backToTopBtn.classList.remove("hidden");
+      } else {
+        backToTopBtn.classList.add("hidden");
+      }
+
+      if (scrolled > 200) {
+        whatsappFloat.classList.remove("hidden");
+      } else {
+        whatsappFloat.classList.add("hidden");
+      }
+    });
+
+    backToTopBtn.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    // FILTRO DE PRODUTOS
+    const filterButtons = document.querySelectorAll(".filter-btn");
+    const productCards = document.querySelectorAll(".products-grid .product-card");
+
+    filterButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const filter = btn.getAttribute("data-filter");
+
+        filterButtons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        productCards.forEach(card => {
+          const category = card.getAttribute("data-category");
+
+          if (filter === "all" || category === filter) {
+            card.classList.remove("hidden");
+          } else {
+            card.classList.add("hidden");
+          }
+        });
+      });
+    });
+
+    // FAVORITAR (VISUAL)
+    document.querySelectorAll(".fav-btn").forEach(btn => {
+      btn.addEventListener("click", event => {
+        event.stopPropagation();
+        btn.classList.toggle("active");
+      });
+    });
+
+    // ANIMAÇÃO DE ENTRADA (FADE-IN)
+    const fadeElements = document.querySelectorAll(".fade-in");
+
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+
+    fadeElements.forEach(el => observer.observe(el));
+
+    // MODAL DE IMAGEM
+    const modal = document.getElementById("image-modal");
+    const modalImg = document.getElementById("modal-img");
+    const closeModal = document.getElementById("close-modal");
+
+    document.querySelectorAll("[data-modal-image]").forEach(img => {
+      img.addEventListener("click", () => {
+        modalImg.src = img.src;
+        modal.classList.add("open");
+      });
+    });
+
+    closeModal.addEventListener("click", () => {
+      modal.classList.remove("open");
+    });
+
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) {
+        modal.classList.remove("open");
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        modal.classList.remove("open");
+      }
+    });
+  </script>
+</body>
+</html>
