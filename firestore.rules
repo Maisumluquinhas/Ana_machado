@@ -1,0 +1,135 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: products
+    // Document ID: auto-generated
+    // Fields:
+    //   - name: string (required, 1-100 chars)
+    //   - category: string (required)
+    //   - price: number (required, positive)
+    //   - sku: string (optional)
+    //   - description: string (optional)
+    //   - imageUrl: string (optional, URL)
+    //   - createdAt: string (required, ISO 8601)
+    //
+    // Collection: products/{productId}/variations
+    // Document ID: auto-generated
+    // Fields:
+    //   - productId: string (required, matches parent)
+    //   - color: string (required, 1-50 chars)
+    //   - size: string (required, 1-10 chars)
+    //   - quantity: number (required, non-negative)
+    //
+    // Collection: movements
+    // Document ID: auto-generated
+    // Fields:
+    //   - productId: string (required)
+    //   - variationId: string (required)
+    //   - type: string (required, 'entry' or 'exit')
+    //   - quantity: number (required, positive)
+    //   - date: string (required, ISO 8601)
+    //   - reason: string (optional)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "nara.alexandre.lucas@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidEmail(email) {
+      return email is string &&
+        email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidUrl(url) {
+      return url is string &&
+        (url.matches("^https://.*") || url.matches("^http://.*"));
+    }
+
+    function isValidDateString(dateStr) {
+      return dateStr is string &&
+        dateStr.matches("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*Z?$");
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidProduct(data) {
+      return hasOnlyAllowedFields(['name', 'category', 'price', 'sku', 'description', 'imageUrl', 'createdAt']) &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 100 &&
+             data.category is string &&
+             data.price is number && data.price >= 0 &&
+             (!('sku' in data) || (data.sku is string && data.sku.size() <= 50)) &&
+             (!('description' in data) || (data.description is string && data.description.size() <= 1000)) &&
+             (!('imageUrl' in data) || isValidUrl(data.imageUrl)) &&
+             isValidDateString(data.createdAt);
+    }
+
+    function isValidVariation(data) {
+      return hasOnlyAllowedFields(['productId', 'color', 'size', 'quantity']) &&
+             data.productId is string &&
+             data.color is string && data.color.size() >= 1 && data.color.size() <= 50 &&
+             data.size is string && data.size.size() >= 1 && data.size.size() <= 10 &&
+             data.quantity is number && data.quantity >= 0;
+    }
+
+    function isValidMovement(data) {
+      return hasOnlyAllowedFields(['productId', 'variationId', 'type', 'quantity', 'date', 'reason']) &&
+             data.productId is string &&
+             data.variationId is string &&
+             data.type in ['entry', 'exit'] &&
+             data.quantity is number && data.quantity > 0 &&
+             isValidDateString(data.date) &&
+             (!('reason' in data) || (data.reason is string && data.reason.size() <= 500));
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    match /products/{productId} {
+      allow read: if isAuthenticated();
+      allow create: if isAdmin() && isValidProduct(request.resource.data);
+      allow update: if isAdmin() && isValidProduct(request.resource.data);
+      allow delete: if isAdmin();
+
+      match /variations/{variationId} {
+        allow read: if isAuthenticated();
+        allow create: if isAdmin() && isValidVariation(request.resource.data);
+        allow update: if isAdmin() && isValidVariation(request.resource.data);
+        allow delete: if isAdmin();
+      }
+    }
+
+    match /movements/{movementId} {
+      allow read: if isAuthenticated();
+      allow create: if isAdmin() && isValidMovement(request.resource.data);
+      // Movements are generally immutable
+      allow update, delete: if false;
+    }
+  }
+}
