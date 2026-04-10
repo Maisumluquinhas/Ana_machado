@@ -1,39 +1,32 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { doc, getDoc, addDoc, updateDoc, collection, Timestamp, writeBatch } from 'firebase/firestore';
-import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
-import { db, storage } from '../lib/firebase';
+import { db } from '../lib/firebase';
 import { CATEGORIES, Product } from '../types';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '../components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { toast } from 'sonner';
-import { ArrowLeft, Save, Plus, Trash2, Package, Loader2, Upload, X as CloseIcon } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, Package, Loader2 } from 'lucide-react';
 
 export default function ProductForm() {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEditing = !!id;
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(isEditing);
-  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     category: CATEGORIES[0],
     price: '',
     sku: '',
-    description: '',
-    imageUrl: '',
-    imagePath: ''
+    description: ''
   });
 
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [variations, setVariations] = useState<{ color: string; size: string; quantity: number }[]>([]);
 
   useEffect(() => {
@@ -49,11 +42,8 @@ export default function ProductForm() {
               category: data.category,
               price: data.price.toString(),
               sku: data.sku || '',
-              description: data.description || '',
-              imageUrl: data.imageUrl || '',
-              imagePath: data.imagePath || ''
+              description: data.description || ''
             });
-            if (data.imageUrl) setImagePreview(data.imageUrl);
           }
         } catch (error) {
           toast.error('Erro ao carregar produto.');
@@ -65,87 +55,14 @@ export default function ProductForm() {
     }
   }, [id, isEditing]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validation
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-    if (!allowedTypes.includes(file.type)) {
-      toast.error('Formato de imagem inválido. Use JPG, PNG ou WebP.');
-      return;
-    }
-
-    const maxSize = 2 * 1024 * 1024; // 2MB
-    if (file.size > maxSize) {
-      toast.error('A imagem deve ter no máximo 2MB.');
-      return;
-    }
-
-    setSelectedFile(file);
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const uploadImage = async (productId: string): Promise<{ url: string; path: string }> => {
-    if (!selectedFile) return { url: formData.imageUrl, path: formData.imagePath };
-
-    // Delete old image if exists
-    if (formData.imagePath) {
-      try {
-        const oldImageRef = ref(storage, formData.imagePath);
-        await deleteObject(oldImageRef);
-      } catch (error) {
-        console.error('Error deleting old image:', error);
-      }
-    }
-
-    const fileExtension = selectedFile.name.split('.').pop();
-    const filePath = `products/${productId}/${Date.now()}.${fileExtension}`;
-    const storageRef = ref(storage, filePath);
-    const uploadTask = uploadBytesResumable(storageRef, selectedFile);
-
-    return new Promise((resolve, reject) => {
-      uploadTask.on(
-        'state_changed',
-        (snapshot) => {
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          setUploadProgress(progress);
-        },
-        (error) => {
-          toast.error('Erro no upload da imagem.');
-          reject(error);
-        },
-        async () => {
-          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-          resolve({ url: downloadURL, path: filePath });
-        }
-      );
-    });
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      let finalImageUrl = formData.imageUrl;
-      let finalImagePath = formData.imagePath;
-
       if (isEditing) {
-        if (selectedFile) {
-          const { url, path } = await uploadImage(id!);
-          finalImageUrl = url;
-          finalImagePath = path;
-        }
-
         const productData = {
           ...formData,
-          imageUrl: finalImageUrl,
-          imagePath: finalImagePath,
           price: Number(formData.price),
           updatedAt: Timestamp.now()
         };
@@ -157,16 +74,8 @@ export default function ProductForm() {
         const batch = writeBatch(db);
         const productRef = doc(collection(db, 'products'));
         
-        if (selectedFile) {
-          const { url, path } = await uploadImage(productRef.id);
-          finalImageUrl = url;
-          finalImagePath = path;
-        }
-
         const productData = {
           ...formData,
-          imageUrl: finalImageUrl,
-          imagePath: finalImagePath,
           price: Number(formData.price),
           createdAt: Timestamp.now(),
           updatedAt: Timestamp.now()
@@ -192,7 +101,6 @@ export default function ProductForm() {
       toast.error('Erro ao salvar produto.');
     } finally {
       setLoading(false);
-      setUploadProgress(null);
     }
   };
 
@@ -231,9 +139,9 @@ export default function ProductForm() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 gap-8">
           {/* Main Info */}
-          <Card className="lg:col-span-2 boutique-card border-none shadow-sm">
+          <Card className="boutique-card border-none shadow-sm">
             <CardHeader>
               <CardTitle className="text-xl font-serif">Informações Básicas</CardTitle>
             </CardHeader>
@@ -302,78 +210,6 @@ export default function ProductForm() {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Detalhes sobre o tecido, caimento, etc."
                   className="min-h-[120px] rounded-xl border-gray-200 focus:ring-boutique-rose"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Media Info */}
-          <Card className="boutique-card border-none shadow-sm h-fit">
-            <CardHeader>
-              <CardTitle className="text-xl font-serif">Mídia</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div 
-                className="aspect-[3/4] bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center overflow-hidden relative group cursor-pointer hover:border-boutique-rose/50 transition-colors"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                {imagePreview ? (
-                  <>
-                    <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <Button 
-                        type="button" 
-                        variant="secondary" 
-                        size="sm" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setImagePreview(null);
-                          setSelectedFile(null);
-                          setFormData({...formData, imageUrl: '', imagePath: ''});
-                        }}
-                      >
-                        Remover
-                      </Button>
-                    </div>
-                  </>
-                ) : (
-                  <div className="text-center p-6">
-                    <Upload className="mx-auto text-gray-300 mb-2" size={48} />
-                    <p className="text-xs text-gray-400 font-medium">Clique para selecionar uma foto</p>
-                    <p className="text-[10px] text-gray-300 mt-1">JPG, PNG ou WebP (Máx 2MB)</p>
-                  </div>
-                )}
-                
-                {uploadProgress !== null && (
-                  <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center p-6">
-                    <Loader2 className="w-8 h-8 text-boutique-gold animate-spin mb-2" />
-                    <div className="w-full bg-gray-100 rounded-full h-1.5 mb-1">
-                      <div className="bg-boutique-gold h-1.5 rounded-full transition-all duration-300" style={{ width: `${uploadProgress}%` }}></div>
-                    </div>
-                    <p className="text-[10px] font-bold text-boutique-gold">{Math.round(uploadProgress)}%</p>
-                  </div>
-                )}
-              </div>
-              
-              <input
-                type="file"
-                ref={fileInputRef}
-                className="hidden"
-                accept="image/*"
-                onChange={handleFileChange}
-              />
-
-              <div className="space-y-2">
-                <Label htmlFor="imageUrl">Ou use uma URL externa</Label>
-                <Input
-                  id="imageUrl"
-                  value={formData.imageUrl}
-                  onChange={(e) => {
-                    setFormData({ ...formData, imageUrl: e.target.value });
-                    setImagePreview(e.target.value);
-                  }}
-                  placeholder="https://exemplo.com/imagem.jpg"
-                  className="rounded-xl border-gray-200"
                 />
               </div>
             </CardContent>

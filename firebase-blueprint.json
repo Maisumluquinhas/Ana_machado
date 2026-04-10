@@ -10,7 +10,6 @@
         "price": { "type": "number", "description": "Price of the item" },
         "sku": { "type": "string", "description": "Internal SKU code" },
         "description": { "type": "string", "description": "Detailed description" },
-        "imageUrl": { "type": "string", "description": "URL of the product image" },
         "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" }
       },
       "required": ["name", "category", "price"]
@@ -37,9 +36,29 @@
         "type": { "type": "string", "enum": ["entry", "exit"], "description": "Type of movement" },
         "quantity": { "type": "number", "description": "Quantity moved" },
         "date": { "type": "string", "format": "date-time", "description": "Timestamp of movement" },
-        "reason": { "type": "string", "description": "Reason for movement (e.g., sale, restock)" }
+        "reason": { "type": "string", "description": "Reason for movement (e.g., sale, restock)" },
+        "variationInfo": { "type": "string", "description": "Summary of color/size" }
       },
       "required": ["productId", "variationId", "type", "quantity", "date"]
+    },
+    "Sale": {
+      "title": "Sale",
+      "description": "A record of a completed sale.",
+      "type": "object",
+      "properties": {
+        "clientId": { "type": "string", "description": "Reference to client (optional)" },
+        "clientName": { "type": "string", "description": "Name of the client" },
+        "date": { "type": "string", "format": "date-time", "description": "Timestamp of sale" },
+        "productId": { "type": "string", "description": "Reference to product sold" },
+        "productName": { "type": "string", "description": "Name of product at time of sale" },
+        "variationId": { "type": "string", "description": "Reference to variation sold" },
+        "variationInfo": { "type": "string", "description": "Summary of color/size" },
+        "quantity": { "type": "number", "description": "Quantity sold" },
+        "unitPrice": { "type": "number", "description": "Price per unit at time of sale" },
+        "totalValue": { "type": "number", "description": "Total value of the sale" },
+        "observation": { "type": "string", "description": "Notes about the sale" }
+      },
+      "required": ["clientName", "date", "productId", "productName", "quantity", "unitPrice", "totalValue"]
     }
   },
   "firestore": {
@@ -54,6 +73,10 @@
     "/movements/{movementId}": {
       "schema": "Movement",
       "description": "Collection of all stock movements."
+    },
+    "/sales/{saleId}": {
+      "schema": "Sale",
+      "description": "Collection of all completed sales."
     }
   }
 }

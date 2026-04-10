@@ -5,8 +5,6 @@ export interface Product {
   price: number;
   sku?: string;
   description?: string;
-  imageUrl?: string;
-  imagePath?: string;
   createdAt: string;
 }
 

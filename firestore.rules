@@ -74,14 +74,14 @@ service cloud.firestore {
     // ===============================================================
 
     function isValidProduct(data) {
-      return hasOnlyAllowedFields(['name', 'category', 'price', 'sku', 'description', 'imageUrl', 'createdAt']) &&
+      return hasOnlyAllowedFields(['name', 'category', 'price', 'sku', 'description', 'createdAt', 'updatedAt']) &&
              data.name is string && data.name.size() >= 1 && data.name.size() <= 100 &&
              data.category is string &&
              data.price is number && data.price >= 0 &&
              (!('sku' in data) || (data.sku is string && data.sku.size() <= 50)) &&
              (!('description' in data) || (data.description is string && data.description.size() <= 1000)) &&
-             (!('imageUrl' in data) || isValidUrl(data.imageUrl)) &&
-             isValidDateString(data.createdAt);
+             (isValidDateString(data.createdAt) || data.createdAt is timestamp) &&
+             (!('updatedAt' in data) || isValidDateString(data.updatedAt) || data.updatedAt is timestamp);
     }
 
     function isValidVariation(data) {
@@ -93,13 +93,27 @@ service cloud.firestore {
     }
 
     function isValidMovement(data) {
-      return hasOnlyAllowedFields(['productId', 'variationId', 'type', 'quantity', 'date', 'reason']) &&
+      return hasOnlyAllowedFields(['productId', 'variationId', 'type', 'quantity', 'date', 'reason', 'variationInfo']) &&
              data.productId is string &&
              data.variationId is string &&
              data.type in ['entry', 'exit'] &&
              data.quantity is number && data.quantity > 0 &&
-             isValidDateString(data.date) &&
-             (!('reason' in data) || (data.reason is string && data.reason.size() <= 500));
+             (isValidDateString(data.date) || data.date is timestamp) &&
+             (!('reason' in data) || (data.reason is string && data.reason.size() <= 500)) &&
+             (!('variationInfo' in data) || (data.variationInfo is string && data.variationInfo.size() <= 200));
+    }
+
+    function isValidSale(data) {
+      return hasOnlyAllowedFields(['clientId', 'clientName', 'date', 'productId', 'productName', 'variationId', 'variationInfo', 'quantity', 'unitPrice', 'totalValue', 'observation']) &&
+             data.clientName is string && data.clientName.size() >= 1 && data.clientName.size() <= 100 &&
+             (isValidDateString(data.date) || data.date is timestamp) &&
+             data.productId is string &&
+             data.productName is string &&
+             data.quantity is number && data.quantity > 0 &&
+             data.unitPrice is number && data.unitPrice >= 0 &&
+             data.totalValue is number && data.totalValue >= 0 &&
+             (!('observation' in data) || (data.observation is string && data.observation.size() <= 500)) &&
+             (!('variationInfo' in data) || (data.variationInfo is string && data.variationInfo.size() <= 200));
     }
 
     // ===============================================================
@@ -129,6 +143,13 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       allow create: if isAdmin() && isValidMovement(request.resource.data);
       // Movements are generally immutable
+      allow update, delete: if false;
+    }
+
+    match /sales/{saleId} {
+      allow read: if isAuthenticated();
+      allow create: if isAdmin() && isValidSale(request.resource.data);
+      // Sales are generally immutable
       allow update, delete: if false;
     }
   }

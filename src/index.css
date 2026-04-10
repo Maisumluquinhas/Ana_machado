@@ -1,7 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Cormorant Garamond", serif;
   --color-boutique-rose: #fdf2f2;
   --color-boutique-gold: #c5a059;
   --color-boutique-dark: #1a1a1a;
@@ -10,20 +12,28 @@
 
 @layer base {
   body {
-    @apply bg-boutique-beige text-boutique-dark;
+    @apply bg-boutique-beige text-boutique-dark font-sans;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif;
   }
 }
 
 .boutique-card {
-  @apply bg-white border border-boutique-rose shadow-sm rounded-xl;
+  @apply bg-white border border-boutique-rose/50 shadow-sm rounded-2xl overflow-hidden;
 }
 
 .boutique-button-primary {
-  @apply bg-boutique-dark text-white hover:bg-boutique-dark/90 transition-all;
+  @apply bg-boutique-dark text-white hover:bg-boutique-dark/90 transition-all font-sans uppercase tracking-widest text-xs font-bold;
 }
 
 .boutique-button-secondary {
-  @apply bg-white border border-boutique-dark text-boutique-dark hover:bg-boutique-rose transition-all;
+  @apply bg-white border border-boutique-dark text-boutique-dark hover:bg-boutique-rose transition-all font-sans uppercase tracking-widest text-xs font-bold;
+}
+
+.boutique-input {
+  @apply rounded-xl border-gray-200 focus:ring-boutique-rose focus:border-boutique-gold transition-all;
 }
 
 @import "tw-animate-css";

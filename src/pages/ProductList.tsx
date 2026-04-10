@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { collection, onSnapshot, doc, updateDoc, deleteDoc, getDocs, query, orderBy, writeBatch } from 'firebase/firestore';
-import { ref, deleteObject } from 'firebase/storage';
-import { db, storage } from '../lib/firebase';
+import { db } from '../lib/firebase';
 import { Product, Variation, CATEGORIES } from '../types';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -61,32 +60,34 @@ export default function ProductList() {
   };
 
   const handleDelete = async (product: Product) => {
-    if (!confirm(`Tem certeza que deseja excluir "${product.name}"?`)) return;
+    if (!confirm(`Tem certeza que deseja excluir "${product.name}"? Esta ação não pode ser desfeita.`)) return;
+    
+    const toastId = toast.loading('Excluindo produto...');
+    
     try {
-      // Delete image from storage if exists
-      if (product.imagePath) {
-        try {
-          const imageRef = ref(storage, product.imagePath);
-          await deleteObject(imageRef);
-        } catch (error) {
-          console.error('Error deleting image:', error);
-        }
-      }
-
-      // Delete variations
+      console.log(`Iniciando exclusão do produto: ${product.id} (${product.name})`);
+      
+      // 1. Delete variations
+      console.log('Buscando variações para excluir...');
       const varSnapshot = await getDocs(collection(db, 'products', product.id, 'variations'));
       const batch = writeBatch(db);
+      
+      console.log(`Encontradas ${varSnapshot.size} variações.`);
       varSnapshot.forEach(vDoc => {
         batch.delete(vDoc.ref);
       });
 
-      // Delete product
+      // 2. Delete product document
+      console.log('Adicionando exclusão do produto ao batch.');
       batch.delete(doc(db, 'products', product.id));
       
       await batch.commit();
-      toast.success('Produto excluído!');
-    } catch (error) {
-      toast.error('Erro ao excluir produto.');
+      console.log('Batch de exclusão executado com sucesso.');
+      
+      toast.success('Produto excluído com sucesso!', { id: toastId });
+    } catch (error: any) {
+      console.error('ERRO CRÍTICO NA EXCLUSÃO:', error);
+      toast.error(`Erro ao excluir produto: ${error.message || 'Erro desconhecido'}`, { id: toastId });
     }
   };
 
@@ -151,8 +152,7 @@ export default function ProductList() {
             <Table>
               <TableHeader className="bg-gray-50/50">
                 <TableRow className="hover:bg-transparent border-b border-gray-100">
-                  <TableHead className="w-[80px] pl-6 py-4">Foto</TableHead>
-                  <TableHead className="min-w-[200px]">Produto</TableHead>
+                  <TableHead className="pl-6 py-4 min-w-[200px]">Produto</TableHead>
                   <TableHead>Categoria</TableHead>
                   <TableHead>Preço</TableHead>
                   <TableHead className="text-center">Estoque Total</TableHead>
@@ -174,15 +174,6 @@ export default function ProductList() {
                   filteredProducts.map((product) => (
                     <TableRow key={product.id} className="group hover:bg-boutique-rose/5 transition-colors border-b border-gray-50">
                       <TableCell className="pl-6 py-4">
-                        <div className="w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-200">
-                          {product.imageUrl ? (
-                            <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                          ) : (
-                            <ImageIcon className="text-gray-300" size={20} />
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
                         {editingId === product.id ? (
                           <Input 
                             value={editValues.name} 

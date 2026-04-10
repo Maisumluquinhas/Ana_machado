@@ -10,12 +10,7 @@ export default function Reports() {
         <p className="text-gray-500 mt-1">Acompanhe o desempenho da sua boutique em detalhes.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <ReportCard 
-          title="Vendas por Vendedor" 
-          description="Desempenho individual da equipe."
-          icon={Users}
-        />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <ReportCard 
           title="Produtos Mais Rentáveis" 
           description="Quais peças trazem mais lucro."

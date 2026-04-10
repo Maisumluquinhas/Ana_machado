@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { doc, getDoc, collection, onSnapshot, addDoc, deleteDoc, updateDoc, increment, writeBatch, query, orderBy, limit, getDocs } from 'firebase/firestore';
-import { ref, deleteObject } from 'firebase/storage';
-import { db, storage } from '../lib/firebase';
+import { db } from '../lib/firebase';
 import { Product, Variation, Movement } from '../types';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
@@ -147,36 +146,36 @@ export default function ProductDetails() {
 
   const handleDeleteProduct = async () => {
     if (!product) return;
-    if (!confirm(`Tem certeza que deseja excluir "${product.name}" e todas as suas variações?`)) return;
+    if (!confirm(`Tem certeza que deseja excluir "${product.name}" e todas as suas variações? Esta ação não pode ser desfeita.`)) return;
     
     setIsSubmitting(true);
+    const toastId = toast.loading('Excluindo produto...');
+    
     try {
-      // 1. Delete image from storage if exists
-      if (product.imagePath) {
-        try {
-          const imageRef = ref(storage, product.imagePath);
-          await deleteObject(imageRef);
-        } catch (error) {
-          console.error('Error deleting image:', error);
-        }
-      }
+      console.log(`Iniciando exclusão do produto: ${id} (${product.name})`);
 
-      // 2. Delete variations
+      // 1. Delete variations
+      console.log('Buscando variações para excluir...');
       const varSnapshot = await getDocs(collection(db, 'products', id!, 'variations'));
       const batch = writeBatch(db);
+      
+      console.log(`Encontradas ${varSnapshot.size} variações.`);
       varSnapshot.forEach(vDoc => {
         batch.delete(vDoc.ref);
       });
 
-      // 3. Delete product
+      // 2. Delete product document
+      console.log('Adicionando exclusão do produto ao batch.');
       batch.delete(doc(db, 'products', id!));
       
       await batch.commit();
-      toast.success('Produto excluído com sucesso!');
+      console.log('Batch de exclusão executado com sucesso.');
+      
+      toast.success('Produto excluído com sucesso!', { id: toastId });
       navigate('/produtos');
-    } catch (error) {
-      console.error(error);
-      toast.error('Erro ao excluir produto.');
+    } catch (error: any) {
+      console.error('ERRO CRÍTICO NA EXCLUSÃO:', error);
+      toast.error(`Erro ao excluir produto: ${error.message || 'Erro desconhecido'}`, { id: toastId });
     } finally {
       setIsSubmitting(false);
     }
@@ -232,13 +231,12 @@ export default function ProductDetails() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Product Info Card */}
         <Card className="boutique-card lg:col-span-1 h-fit">
-          <div className="aspect-[3/4] bg-boutique-rose flex items-center justify-center overflow-hidden rounded-t-xl">
-            {product.imageUrl ? (
-              <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-            ) : (
-              <ImageIcon className="text-boutique-gold/50" size={64} />
-            )}
-          </div>
+          <CardHeader className="bg-boutique-rose/10 rounded-t-xl">
+            <div className="flex items-center gap-3">
+              <Package className="text-boutique-gold" size={24} />
+              <CardTitle className="text-lg font-serif">Resumo da Peça</CardTitle>
+            </div>
+          </CardHeader>
           <CardContent className="p-6 space-y-4">
             <div className="flex justify-between items-end">
               <div>
@@ -255,7 +253,7 @@ export default function ProductDetails() {
               </div>
             </div>
             {product.description && (
-              <div className="pt-4 border-t border-boutique-rose">
+              <div className="pt-4 border-t border-boutique-rose/20">
                 <p className="text-xs text-gray-400 uppercase tracking-widest mb-2">Descrição</p>
                 <p className="text-sm text-gray-600 leading-relaxed">{product.description}</p>
               </div>

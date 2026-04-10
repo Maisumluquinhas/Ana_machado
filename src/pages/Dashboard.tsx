@@ -318,11 +318,7 @@ export default function Dashboard() {
                   <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center overflow-hidden">
-                        {item.imageUrl ? (
-                          <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                        ) : (
-                          <Package size={16} className="text-gray-300" />
-                        )}
+                        <Package size={16} className="text-gray-300" />
                       </div>
                       <div>
                         <p className="text-sm font-bold text-boutique-dark">{item.name}</p>
