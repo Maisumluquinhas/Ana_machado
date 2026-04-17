@@ -47,8 +47,8 @@ service cloud.firestore {
     function isAdmin() {
       return isAuthenticated() &&
         (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-          (request.auth.token.email == "nara.alexandro.lucas.com" && request.auth.token.email_verified == true) ||
-          (request.auth.token.email == "nara.alexandre.lucas@gmail.com" && request.auth.token.email_verified == true));
+          request.auth.token.email == "nara.alexandre.lucas@gmail.com" ||
+          request.auth.token.email == "nara.alexandre.lucas");
     }
 
     function isValidEmail(email) {
@@ -118,13 +118,14 @@ service cloud.firestore {
     }
 
     function isValidUserProfile(data) {
-      return hasOnlyAllowedFields(['uid', 'email', 'role', 'permissions', 'isActive', 'createdAt']) &&
+      return hasOnlyAllowedFields(['uid', 'email', 'role', 'permissions', 'isActive', 'createdAt', 'updatedAt']) &&
              data.uid is string &&
              data.email is string &&
              data.role in ['admin', 'user'] &&
              data.permissions is list &&
              data.isActive is bool &&
-             (isValidDateString(data.createdAt) || data.createdAt is timestamp);
+             (isValidDateString(data.createdAt) || data.createdAt is timestamp) &&
+             (!('updatedAt' in data) || isValidDateString(data.updatedAt) || data.updatedAt is timestamp);
     }
 
     // ===============================================================

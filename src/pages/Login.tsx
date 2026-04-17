@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth, db } from '../lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { Button } from '../components/ui/button';
@@ -18,9 +18,33 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    
+    // Normalize email for admin
+    let loginEmail = email.trim().toLowerCase();
+    if (loginEmail === 'nara.alexandre.lucas') {
+      loginEmail = 'nara.alexandre.lucas@gmail.com';
+    }
+
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
+      // Special bootstrapping for the designated admin
+      if (loginEmail === 'nara.alexandre.lucas@gmail.com' && password === '150236Cc..') {
+        try {
+          await signInWithEmailAndPassword(auth, loginEmail, password);
+        } catch (signInError: any) {
+          if (signInError.code === 'auth/user-not-found' || signInError.code === 'auth/invalid-credential') {
+            // Attempt to create the primary admin if it doesn't exist
+            await createUserWithEmailAndPassword(auth, loginEmail, password);
+            toast.success('Conta de administrador provisionada com sucesso!');
+          } else {
+            throw signInError;
+          }
+        }
+      } else {
+        await signInWithEmailAndPassword(auth, loginEmail, password);
+      }
+
+      const user = auth.currentUser;
+      if (!user) throw new Error('Falha na autenticação.');
       
       // Check if user is active
       const userDoc = await getDoc(doc(db, 'users', user.uid));
@@ -67,11 +91,11 @@ export default function Login() {
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">E-mail</Label>
+                <Label htmlFor="email">E-mail ou Usuário</Label>
                 <Input
                   id="email"
-                  type="email"
-                  placeholder="seu@email.com"
+                  type="text"
+                  placeholder="Seu login"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required

@@ -14,6 +14,7 @@ export interface UserProfile {
   permissions: AppPermission[];
   isActive: boolean;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface Product {

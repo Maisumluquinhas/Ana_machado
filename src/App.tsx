@@ -30,9 +30,11 @@ function ProtectedRoute({
   if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
   
   // Wait for profile to load if user is logged in
-  if (!profile && user.email !== 'nara.alexandro.lucas.com') {
-     // If user exists but no profile found and not primary admin, log them out or show error
-     // For now, let's just wait or redirect to login. Actually AuthProvider creates profile for primary admin.
+  const identifier = user.email?.toLowerCase().trim() || '';
+  const isPrimary = identifier === 'nara.alexandre.lucas@gmail.com' || 
+                    identifier === 'nara.alexandre.lucas';
+
+  if (!profile && !isPrimary) {
      return <div className="flex items-center justify-center h-screen">Sua conta não possui perfil.</div>;
   }
 

@@ -4,8 +4,14 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from './firebase';
 import { UserProfile, AppPermission } from '../types';
 
-// Admin email as requested
-export const PRIMARY_ADMIN_EMAIL = 'nara.alexandro.lucas.com';
+// Valid admin identifiers (always compare in lowercase)
+export const PRIMARY_ADMIN_EMAIL = 'nara.alexandre.lucas@gmail.com';
+
+const isPrimaryAdmin = (email: string | null | undefined) => {
+  if (!email) return false;
+  const lowerEmail = email.toLowerCase().trim();
+  return lowerEmail === 'nara.alexandre.lucas@gmail.com' || lowerEmail === 'nara.alexandre.lucas';
+};
 
 interface AuthContextType {
   user: User | null;
@@ -29,6 +35,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Force set loading false if it takes too long (failsafe)
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 5000);
+
     const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
       setUser(authUser);
       
@@ -39,11 +50,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           
           if (docSnap.exists()) {
             setProfile(docSnap.data() as UserProfile);
-          } else if (authUser.email === PRIMARY_ADMIN_EMAIL) {
+          } else if (isPrimaryAdmin(authUser.email)) {
             // Self-provision primary admin if they login first time and doc doesn't exist
+            const now = new Date().toISOString();
             const newProfile: UserProfile = {
               uid: authUser.uid,
-              email: authUser.email!,
+              email: authUser.email || PRIMARY_ADMIN_EMAIL,
               role: 'admin',
               permissions: [
                 'view_products', 
@@ -55,7 +67,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 'manage_users'
               ],
               isActive: true,
-              createdAt: new Date().toISOString()
+              createdAt: now,
+              updatedAt: now
             };
             await setDoc(docRef, newProfile);
             setProfile(newProfile);
@@ -63,7 +76,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setProfile(null);
           }
         } catch (error) {
-          console.error("Error fetching user profile:", error);
+          console.error("AuthContext: Error fetching profile", error);
           setProfile(null);
         }
       } else {
@@ -71,12 +84,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       setLoading(false);
+      clearTimeout(timer);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      clearTimeout(timer);
+    };
   }, []);
 
-  const isAdmin = profile?.role === 'admin' || user?.email === PRIMARY_ADMIN_EMAIL;
+  const isAdmin = profile?.role === 'admin' || isPrimaryAdmin(user?.email);
 
   const hasPermission = (permission: AppPermission) => {
     if (isAdmin) return true;

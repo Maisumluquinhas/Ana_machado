@@ -86,13 +86,15 @@ export default function Users() {
       const uid = userCredential.user.uid;
 
       // Create profile in Firestore using the main app
+      const now = new Date().toISOString();
       const profile: UserProfile = {
         uid,
         email: newUser.email,
         role: newUser.role,
         permissions: newUser.role === 'admin' ? PERMISSIONS.map(p => p.id) : newUser.permissions,
         isActive: true,
-        createdAt: new Date().toISOString()
+        createdAt: now,
+        updatedAt: now
       };
 
       await setDoc(doc(db, 'users', uid), profile);
@@ -115,7 +117,8 @@ export default function Users() {
   const handleUpdateStatus = async (user: UserProfile) => {
     try {
       await updateDoc(doc(db, 'users', user.uid), {
-        isActive: !user.isActive
+        isActive: !user.isActive,
+        updatedAt: new Date().toISOString()
       });
       toast.success(`Usuário ${!user.isActive ? 'ativado' : 'desativado'} com sucesso.`);
     } catch (error) {
@@ -131,7 +134,8 @@ export default function Users() {
     try {
       await updateDoc(doc(db, 'users', editingUser.uid), {
         role: editingUser.role,
-        permissions: editingUser.role === 'admin' ? PERMISSIONS.map(p => p.id) : editingUser.permissions
+        permissions: editingUser.role === 'admin' ? PERMISSIONS.map(p => p.id) : editingUser.permissions,
+        updatedAt: new Date().toISOString()
       });
       toast.success('Permissões atualizadas!');
       setIsEditUserOpen(false);
