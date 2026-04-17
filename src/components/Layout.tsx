@@ -1,15 +1,18 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Package, LogOut, Menu, X, History, ShoppingBag, BarChart3, Settings, Boxes } from 'lucide-react';
+import { LayoutDashboard, Package, LogOut, Menu, X, ShoppingBag, BarChart3, Settings, Boxes, Users } from 'lucide-react';
 import { useState } from 'react';
 import { auth } from '../lib/firebase';
 import { signOut } from 'firebase/auth';
 import { Button } from './ui/button';
 import { cn } from '../lib/utils';
+import { useAuth } from '../lib/AuthContext';
+import { AppPermission } from '../types';
 
 export default function Layout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { profile, hasPermission, isAdmin } = useAuth();
 
   const handleSignOut = async () => {
     await signOut(auth);
@@ -18,12 +21,13 @@ export default function Layout() {
 
   const navItems = [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/' },
-    { label: 'Produtos', icon: Package, path: '/produtos' },
-    { label: 'Vendas', icon: ShoppingBag, path: '/vendas' },
-    { label: 'Estoque', icon: Boxes, path: '/estoque' },
-    { label: 'Relatórios', icon: BarChart3, path: '/relatorios' },
+    { label: 'Produtos', icon: Package, path: '/produtos', permission: 'view_products' as AppPermission },
+    { label: 'Vendas', icon: ShoppingBag, path: '/vendas', permission: 'view_reports' as AppPermission },
+    { label: 'Estoque', icon: Boxes, path: '/estoque', permission: 'stock_movement' as AppPermission },
+    { label: 'Relatórios', icon: BarChart3, path: '/relatorios', permission: 'view_reports' as AppPermission },
+    { label: 'Usuários', icon: Users, path: '/usuarios', permission: 'manage_users' as AppPermission },
     { label: 'Configurações', icon: Settings, path: '/configuracoes' },
-  ];
+  ].filter(item => !item.permission || hasPermission(item.permission));
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-[#f8f9fa]">

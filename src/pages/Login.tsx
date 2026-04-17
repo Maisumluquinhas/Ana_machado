@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../lib/firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth, db } from '../lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -12,34 +13,33 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      if (isSignUp) {
-        await createUserWithEmailAndPassword(auth, email, password);
-        toast.success('Conta criada com sucesso!');
-      } else {
-        await signInWithEmailAndPassword(auth, email, password);
-        toast.success('Login realizado com sucesso!');
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      
+      // Check if user is active
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      if (userDoc.exists() && !userDoc.data().isActive) {
+        toast.error('Sua conta está desativada. Entre em contato com o administrador.');
+        return;
       }
+      
+      toast.success('Login realizado com sucesso!');
       navigate('/');
     } catch (error: any) {
       console.error(error);
-      let message = isSignUp ? 'Erro ao criar conta.' : 'Erro ao fazer login.';
+      let message = 'Erro ao fazer login.';
       
       if (error.code === 'auth/operation-not-allowed') {
         message = 'O login por e-mail e senha não está ativado no Console do Firebase.';
-      } else if (error.code === 'auth/email-already-in-use') {
-        message = 'Este e-mail já está em uso.';
-      } else if (error.code === 'auth/weak-password') {
-        message = 'A senha é muito fraca (mínimo 6 caracteres).';
       } else if (error.code === 'auth/invalid-email') {
         message = 'E-mail inválido.';
-      } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+      } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
         message = 'E-mail ou senha incorretos.';
       }
       
@@ -59,11 +59,9 @@ export default function Login() {
         
         <Card className="boutique-card">
           <CardHeader>
-            <CardTitle className="text-2xl">{isSignUp ? 'Criar Nova Conta' : 'Acesso ao Sistema'}</CardTitle>
+            <CardTitle className="text-2xl">Acesso ao Sistema</CardTitle>
             <CardDescription>
-              {isSignUp 
-                ? 'Preencha os dados abaixo para se registrar.' 
-                : 'Entre com seu e-mail e senha para gerenciar o estoque.'}
+              Entre com seu e-mail e senha para gerenciar o estoque.
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
@@ -98,15 +96,7 @@ export default function Login() {
                 className="w-full boutique-button-primary py-6 text-lg" 
                 disabled={loading}
               >
-                {loading ? 'Processando...' : (isSignUp ? 'Registrar' : 'Entrar')}
-              </Button>
-              <Button 
-                type="button" 
-                variant="ghost" 
-                className="text-boutique-gold hover:text-boutique-dark"
-                onClick={() => setIsSignUp(!isSignUp)}
-              >
-                {isSignUp ? 'Já tem uma conta? Entre aqui' : 'Não tem uma conta? Crie uma agora'}
+                {loading ? 'Processando...' : 'Entrar'}
               </Button>
             </CardFooter>
           </form>

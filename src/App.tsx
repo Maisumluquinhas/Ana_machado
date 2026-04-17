@@ -1,7 +1,8 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './lib/AuthContext';
 import { Toaster } from './components/ui/sonner';
+import { AppPermission } from './types';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import ProductList from './pages/ProductList';
@@ -11,13 +12,33 @@ import Sales from './pages/Sales';
 import Stock from './pages/Stock';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
+import Users from './pages/Users';
 import Layout from './components/Layout';
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+function ProtectedRoute({ 
+  children, 
+  requiredPermission 
+}: { 
+  children: React.ReactNode;
+  requiredPermission?: AppPermission;
+}) {
+  const { user, profile, loading, hasPermission } = useAuth();
+  const location = useLocation();
   
   if (loading) return <div className="flex items-center justify-center h-screen">Carregando...</div>;
-  if (!user) return <Navigate to="/login" />;
+  
+  if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
+  
+  // Wait for profile to load if user is logged in
+  if (!profile && user.email !== 'nara.alexandro.lucas.com') {
+     // If user exists but no profile found and not primary admin, log them out or show error
+     // For now, let's just wait or redirect to login. Actually AuthProvider creates profile for primary admin.
+     return <div className="flex items-center justify-center h-screen">Sua conta não possui perfil.</div>;
+  }
+
+  if (requiredPermission && !hasPermission(requiredPermission)) {
+    return <Navigate to="/" replace />;
+  }
   
   return <>{children}</>;
 }
@@ -37,13 +58,55 @@ export default function App() {
             }
           >
             <Route index element={<Dashboard />} />
-            <Route path="produtos" element={<ProductList />} />
-            <Route path="produtos/novo" element={<ProductForm />} />
-            <Route path="produtos/:id" element={<ProductDetails />} />
-            <Route path="produtos/:id/editar" element={<ProductForm />} />
-            <Route path="vendas" element={<Sales />} />
-            <Route path="estoque" element={<Stock />} />
-            <Route path="relatorios" element={<Reports />} />
+            
+            <Route path="produtos" element={
+              <ProtectedRoute requiredPermission="view_products">
+                <ProductList />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="produtos/novo" element={
+              <ProtectedRoute requiredPermission="create_products">
+                <ProductForm />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="produtos/:id" element={
+              <ProtectedRoute requiredPermission="view_products">
+                <ProductDetails />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="produtos/:id/editar" element={
+              <ProtectedRoute requiredPermission="edit_products">
+                <ProductForm />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="vendas" element={
+              <ProtectedRoute requiredPermission="view_reports">
+                <Sales />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="estoque" element={
+              <ProtectedRoute requiredPermission="stock_movement">
+                <Stock />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="relatorios" element={
+              <ProtectedRoute requiredPermission="view_reports">
+                <Reports />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="usuarios" element={
+              <ProtectedRoute requiredPermission="manage_users">
+                <Users />
+              </ProtectedRoute>
+            } />
+            
             <Route path="configuracoes" element={<Settings />} />
           </Route>
         </Routes>

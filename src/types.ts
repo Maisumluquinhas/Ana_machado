@@ -1,3 +1,21 @@
+export type AppPermission = 
+  | 'view_products' 
+  | 'create_products' 
+  | 'edit_products' 
+  | 'excluir_products' 
+  | 'stock_movement' 
+  | 'view_reports' 
+  | 'manage_users';
+
+export interface UserProfile {
+  uid: string;
+  email: string;
+  role: 'admin' | 'user';
+  permissions: AppPermission[];
+  isActive: boolean;
+  createdAt: string;
+}
+
 export interface Product {
   id: string;
   name: string;

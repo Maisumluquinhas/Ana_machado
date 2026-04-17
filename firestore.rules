@@ -47,6 +47,7 @@ service cloud.firestore {
     function isAdmin() {
       return isAuthenticated() &&
         (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "nara.alexandro.lucas.com" && request.auth.token.email_verified == true) ||
           (request.auth.token.email == "nara.alexandre.lucas@gmail.com" && request.auth.token.email_verified == true));
     }
 
@@ -116,39 +117,56 @@ service cloud.firestore {
              (!('variationInfo' in data) || (data.variationInfo is string && data.variationInfo.size() <= 200));
     }
 
+    function isValidUserProfile(data) {
+      return hasOnlyAllowedFields(['uid', 'email', 'role', 'permissions', 'isActive', 'createdAt']) &&
+             data.uid is string &&
+             data.email is string &&
+             data.role in ['admin', 'user'] &&
+             data.permissions is list &&
+             data.isActive is bool &&
+             (isValidDateString(data.createdAt) || data.createdAt is timestamp);
+    }
+
     // ===============================================================
     // Rules
     // ===============================================================
 
     match /users/{userId} {
-      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
-      allow write: if isAdmin();
+      allow read: if isAuthenticated();
+      allow create, update: if isAdmin() && isValidUserProfile(request.resource.data);
+      allow delete: if false;
     }
 
     match /products/{productId} {
-      allow read: if isAuthenticated();
-      allow create: if isAdmin() && isValidProduct(request.resource.data);
-      allow update: if isAdmin() && isValidProduct(request.resource.data);
-      allow delete: if isAdmin();
+      allow read: if isAuthenticated() && 
+                    (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.permissions.hasAny(['view_products']) || isAdmin());
+      allow create: if (isAdmin() || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.permissions.hasAny(['create_products'])) && 
+                    isValidProduct(request.resource.data);
+      allow update: if (isAdmin() || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.permissions.hasAny(['edit_products'])) && 
+                    isValidProduct(request.resource.data);
+      allow delete: if (isAdmin() || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.permissions.hasAny(['excluir_products']));
 
       match /variations/{variationId} {
         allow read: if isAuthenticated();
-        allow create: if isAdmin() && isValidVariation(request.resource.data);
-        allow update: if isAdmin() && isValidVariation(request.resource.data);
-        allow delete: if isAdmin();
+        // Variations inherit permissions from product actions or have their own logic
+        allow create: if (isAdmin() || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.permissions.hasAny(['edit_products']));
+        allow update: if (isAdmin() || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.permissions.hasAny(['stock_movement', 'edit_products']));
+        allow delete: if (isAdmin() || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.permissions.hasAny(['edit_products']));
       }
     }
 
     match /movements/{movementId} {
       allow read: if isAuthenticated();
-      allow create: if isAdmin() && isValidMovement(request.resource.data);
+      allow create: if (isAdmin() || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.permissions.hasAny(['stock_movement'])) && 
+                    isValidMovement(request.resource.data);
       // Movements are generally immutable
       allow update, delete: if false;
     }
 
     match /sales/{saleId} {
-      allow read: if isAuthenticated();
-      allow create: if isAdmin() && isValidSale(request.resource.data);
+      allow read: if isAuthenticated() && (isAdmin() || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.permissions.hasAny(['view_reports']));
+      allow create: if (isAdmin() || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.permissions.hasAny(['stock_movement'])) && 
+                    isValidSale(request.resource.data);
       // Sales are generally immutable
       allow update, delete: if false;
     }

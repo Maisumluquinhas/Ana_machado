@@ -41,6 +41,20 @@
       },
       "required": ["productId", "variationId", "type", "quantity", "date"]
     },
+    "User": {
+      "title": "User",
+      "description": "System user with specific roles and permissions.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "user"] },
+        "permissions": { "type": "array", "items": { "type": "string" } },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role", "permissions", "isActive"]
+    },
     "Sale": {
       "title": "Sale",
       "description": "A record of a completed sale.",
@@ -77,6 +91,10 @@
     "/sales/{saleId}": {
       "schema": "Sale",
       "description": "Collection of all completed sales."
+    },
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Collection of user profiles and permissions."
     }
   }
 }

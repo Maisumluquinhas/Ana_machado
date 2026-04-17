@@ -12,8 +12,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { cn } from '../lib/utils';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { useAuth } from '../lib/AuthContext';
 
 export default function ProductList() {
+  const { hasPermission } = useAuth();
   const [products, setProducts] = useState<(Product & { totalStock: number })[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -111,12 +113,14 @@ export default function ProductList() {
           <h2 className="text-3xl font-serif font-bold text-boutique-dark">Estoque de Peças</h2>
           <p className="text-gray-500 mt-1">Gerencie seu catálogo e níveis de estoque.</p>
         </div>
-        <Link to="/produtos/novo">
-          <Button className="boutique-button-primary gap-2 h-12 px-6 rounded-2xl shadow-lg shadow-boutique-dark/10">
-            <Plus size={20} />
-            Cadastrar Nova Peça
-          </Button>
-        </Link>
+        {hasPermission('create_products') && (
+          <Link to="/produtos/novo">
+            <Button className="boutique-button-primary gap-2 h-12 px-6 rounded-2xl shadow-lg shadow-boutique-dark/10">
+              <Plus size={20} />
+              Cadastrar Nova Peça
+            </Button>
+          </Link>
+        )}
       </div>
 
       <Card className="boutique-card border-none shadow-sm overflow-hidden">
@@ -243,12 +247,16 @@ export default function ProductList() {
                             </>
                           ) : (
                             <>
-                              <Button size="icon" variant="ghost" className="h-8 w-8 text-gray-400 hover:text-boutique-gold opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleStartEdit(product)}>
-                                <Edit2 size={18} />
-                              </Button>
-                              <Button size="icon" variant="ghost" className="h-8 w-8 text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleDelete(product)}>
-                                <Trash2 size={18} />
-                              </Button>
+                              {hasPermission('edit_products') && (
+                                <Button size="icon" variant="ghost" className="h-8 w-8 text-gray-400 hover:text-boutique-gold opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleStartEdit(product)}>
+                                  <Edit2 size={18} />
+                                </Button>
+                              )}
+                              {hasPermission('excluir_products') && (
+                                <Button size="icon" variant="ghost" className="h-8 w-8 text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleDelete(product)}>
+                                  <Trash2 size={18} />
+                                </Button>
+                              )}
                               <Link to={`/produtos/${product.id}`}>
                                 <Button variant="ghost" size="icon" className="h-10 w-10 text-boutique-gold hover:bg-boutique-rose/30 rounded-full">
                                   <ChevronRight size={20} />

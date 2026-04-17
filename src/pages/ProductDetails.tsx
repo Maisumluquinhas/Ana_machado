@@ -16,8 +16,10 @@ import { ArrowLeft, Edit, Plus, Minus, History, Trash2, Package, Image as ImageI
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '../lib/utils';
+import { useAuth } from '../lib/AuthContext';
 
 export default function ProductDetails() {
+  const { hasPermission } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   
@@ -210,21 +212,25 @@ export default function ProductDetails() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Link to={`/produtos/${id}/editar`}>
-            <Button variant="outline" className="border-boutique-rose text-boutique-dark gap-2">
-              <Edit size={18} />
-              Editar Peça
+          {hasPermission('edit_products') && (
+            <Link to={`/produtos/${id}/editar`}>
+              <Button variant="outline" className="border-boutique-rose text-boutique-dark gap-2">
+                <Edit size={18} />
+                Editar Peça
+              </Button>
+            </Link>
+          )}
+          {hasPermission('excluir_products') && (
+            <Button 
+              variant="outline" 
+              className="border-red-200 text-red-600 hover:bg-red-50 gap-2"
+              onClick={handleDeleteProduct}
+              disabled={isSubmitting}
+            >
+              <Trash2 size={18} />
+              Excluir
             </Button>
-          </Link>
-          <Button 
-            variant="outline" 
-            className="border-red-200 text-red-600 hover:bg-red-50 gap-2"
-            onClick={handleDeleteProduct}
-            disabled={isSubmitting}
-          >
-            <Trash2 size={18} />
-            Excluir
-          </Button>
+          )}
         </div>
       </div>
 
@@ -269,57 +275,59 @@ export default function ProductDetails() {
                 <CardTitle className="text-xl">Variações e Estoque</CardTitle>
                 <CardDescription>Controle de cores e tamanhos disponíveis.</CardDescription>
               </div>
-              <Dialog open={isAddVarOpen} onOpenChange={setIsAddVarOpen}>
-                <DialogTrigger asChild>
-                  <Button className="boutique-button-primary gap-2">
-                    <Plus size={18} />
-                    Adicionar Variação
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                  <DialogHeader>
-                    <DialogTitle>Nova Variação</DialogTitle>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="color" className="text-right">Cor</Label>
-                      <Input 
-                        id="color" 
-                        className="col-span-3" 
-                        placeholder="Ex: Preto" 
-                        value={newVar.color}
-                        onChange={(e) => setNewVar({...newVar, color: e.target.value})}
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="size" className="text-right">Tamanho</Label>
-                      <Input 
-                        id="size" 
-                        className="col-span-3" 
-                        placeholder="Ex: M" 
-                        value={newVar.size}
-                        onChange={(e) => setNewVar({...newVar, size: e.target.value})}
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="qty" className="text-right">Estoque Inicial</Label>
-                      <Input 
-                        id="qty" 
-                        type="number" 
-                        className="col-span-3" 
-                        value={newVar.quantity}
-                        onChange={(e) => setNewVar({...newVar, quantity: parseInt(e.target.value) || 0})}
-                      />
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button variant="ghost" onClick={() => setIsAddVarOpen(false)}>Cancelar</Button>
-                    <Button onClick={handleAddVariation} className="boutique-button-primary" disabled={isSubmitting}>
-                      {isSubmitting ? <Loader2 className="animate-spin" /> : 'Salvar'}
+              {hasPermission('edit_products') && (
+                <Dialog open={isAddVarOpen} onOpenChange={setIsAddVarOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="boutique-button-primary gap-2">
+                      <Plus size={18} />
+                      Adicionar Variação
                     </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>Nova Variação</DialogTitle>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="color" className="text-right">Cor</Label>
+                        <Input 
+                          id="color" 
+                          className="col-span-3" 
+                          placeholder="Ex: Preto" 
+                          value={newVar.color}
+                          onChange={(e) => setNewVar({...newVar, color: e.target.value})}
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="size" className="text-right">Tamanho</Label>
+                        <Input 
+                          id="size" 
+                          className="col-span-3" 
+                          placeholder="Ex: M" 
+                          value={newVar.size}
+                          onChange={(e) => setNewVar({...newVar, size: e.target.value})}
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="qty" className="text-right">Estoque Inicial</Label>
+                        <Input 
+                          id="qty" 
+                          type="number" 
+                          className="col-span-3" 
+                          value={newVar.quantity}
+                          onChange={(e) => setNewVar({...newVar, quantity: parseInt(e.target.value) || 0})}
+                        />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="ghost" onClick={() => setIsAddVarOpen(false)}>Cancelar</Button>
+                      <Button onClick={handleAddVariation} className="boutique-button-primary" disabled={isSubmitting}>
+                        {isSubmitting ? <Loader2 className="animate-spin" /> : 'Salvar'}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              )}
             </CardHeader>
             <CardContent>
               {variations.length === 0 ? (
@@ -352,38 +360,44 @@ export default function ProductDetails() {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right space-x-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="h-8 w-8 p-0 border-green-200 text-green-600 hover:bg-green-50"
-                            onClick={() => {
-                              setSelectedVar(v);
-                              setMovementType('entry');
-                              setIsMovementOpen(true);
-                            }}
-                          >
-                            <Plus size={16} />
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="h-8 w-8 p-0 border-red-200 text-red-600 hover:bg-red-50"
-                            onClick={() => {
-                              setSelectedVar(v);
-                              setMovementType('exit');
-                              setIsMovementOpen(true);
-                            }}
-                          >
-                            <Minus size={16} />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-8 w-8 p-0 text-gray-400 hover:text-destructive"
-                            onClick={() => handleDeleteVariation(v.id)}
-                          >
-                            <Trash2 size={16} />
-                          </Button>
+                          {hasPermission('stock_movement') && (
+                            <>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="h-8 w-8 p-0 border-green-200 text-green-600 hover:bg-green-50"
+                                onClick={() => {
+                                  setSelectedVar(v);
+                                  setMovementType('entry');
+                                  setIsMovementOpen(true);
+                                }}
+                              >
+                                <Plus size={16} />
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="h-8 w-8 p-0 border-red-200 text-red-600 hover:bg-red-50"
+                                onClick={() => {
+                                  setSelectedVar(v);
+                                  setMovementType('exit');
+                                  setIsMovementOpen(true);
+                                }}
+                              >
+                                <Minus size={16} />
+                              </Button>
+                            </>
+                          )}
+                          {hasPermission('edit_products') && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-8 w-8 p-0 text-gray-400 hover:text-destructive"
+                              onClick={() => handleDeleteVariation(v.id)}
+                            >
+                              <Trash2 size={16} />
+                            </Button>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
