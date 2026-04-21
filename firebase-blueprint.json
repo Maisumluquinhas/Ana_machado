@@ -1,201 +1,180 @@
-"use client"
-
-import * as React from "react"
-import { Select as SelectPrimitive } from "@base-ui/react/select"
-
-import { cn } from "@/lib/utils"
-import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react"
-
-const Select = SelectPrimitive.Root
-
-function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
-  return (
-    <SelectPrimitive.Group
-      data-slot="select-group"
-      className={cn("scroll-my-1 p-1", className)}
-      {...props}
-    />
-  )
-}
-
-function SelectValue({ className, ...props }: SelectPrimitive.Value.Props) {
-  return (
-    <SelectPrimitive.Value
-      data-slot="select-value"
-      className={cn("flex flex-1 text-left", className)}
-      {...props}
-    />
-  )
-}
-
-function SelectTrigger({
-  className,
-  size = "default",
-  children,
-  ...props
-}: SelectPrimitive.Trigger.Props & {
-  size?: "sm" | "default"
-}) {
-  return (
-    <SelectPrimitive.Trigger
-      data-slot="select-trigger"
-      data-size={size}
-      className={cn(
-        "flex w-fit items-center justify-between gap-1.5 rounded-lg border border-input bg-transparent py-2 pr-2 pl-2.5 text-sm whitespace-nowrap transition-colors outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 data-placeholder:text-muted-foreground data-[size=default]:h-8 data-[size=sm]:h-7 data-[size=sm]:rounded-[min(var(--radius-md),10px)] *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-1.5 dark:bg-input/30 dark:hover:bg-input/50 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-        className
-      )}
-      {...props}
-    >
-      {children}
-      <SelectPrimitive.Icon
-        render={
-          <ChevronDownIcon className="pointer-events-none size-4 text-muted-foreground" />
-        }
-      />
-    </SelectPrimitive.Trigger>
-  )
-}
-
-function SelectContent({
-  className,
-  children,
-  side = "bottom",
-  sideOffset = 4,
-  align = "center",
-  alignOffset = 0,
-  alignItemWithTrigger = true,
-  ...props
-}: SelectPrimitive.Popup.Props &
-  Pick<
-    SelectPrimitive.Positioner.Props,
-    "align" | "alignOffset" | "side" | "sideOffset" | "alignItemWithTrigger"
-  >) {
-  return (
-    <SelectPrimitive.Portal>
-      <SelectPrimitive.Positioner
-        side={side}
-        sideOffset={sideOffset}
-        align={align}
-        alignOffset={alignOffset}
-        alignItemWithTrigger={alignItemWithTrigger}
-        className="isolate z-50"
-      >
-        <SelectPrimitive.Popup
-          data-slot="select-content"
-          data-align-trigger={alignItemWithTrigger}
-          className={cn("relative isolate z-50 max-h-(--available-height) w-(--anchor-width) min-w-36 origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-lg bg-popover text-popover-foreground shadow-md ring-1 ring-foreground/10 duration-100 data-[align-trigger=true]:animate-none data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95", className )}
-          {...props}
-        >
-          <SelectScrollUpButton />
-          <SelectPrimitive.List>{children}</SelectPrimitive.List>
-          <SelectScrollDownButton />
-        </SelectPrimitive.Popup>
-      </SelectPrimitive.Positioner>
-    </SelectPrimitive.Portal>
-  )
-}
-
-function SelectLabel({
-  className,
-  ...props
-}: SelectPrimitive.GroupLabel.Props) {
-  return (
-    <SelectPrimitive.GroupLabel
-      data-slot="select-label"
-      className={cn("px-1.5 py-1 text-xs text-muted-foreground", className)}
-      {...props}
-    />
-  )
-}
-
-function SelectItem({
-  className,
-  children,
-  ...props
-}: SelectPrimitive.Item.Props) {
-  return (
-    <SelectPrimitive.Item
-      data-slot="select-item"
-      className={cn(
-        "relative flex w-full cursor-default items-center gap-1.5 rounded-md py-1 pr-8 pl-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground not-data-[variant=destructive]:focus:**:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
-        className
-      )}
-      {...props}
-    >
-      <SelectPrimitive.ItemText className="flex flex-1 shrink-0 gap-2 whitespace-nowrap">
-        {children}
-      </SelectPrimitive.ItemText>
-      <SelectPrimitive.ItemIndicator
-        render={
-          <span className="pointer-events-none absolute right-2 flex size-4 items-center justify-center" />
-        }
-      >
-        <CheckIcon className="pointer-events-none" />
-      </SelectPrimitive.ItemIndicator>
-    </SelectPrimitive.Item>
-  )
-}
-
-function SelectSeparator({
-  className,
-  ...props
-}: SelectPrimitive.Separator.Props) {
-  return (
-    <SelectPrimitive.Separator
-      data-slot="select-separator"
-      className={cn("pointer-events-none -mx-1 my-1 h-px bg-border", className)}
-      {...props}
-    />
-  )
-}
-
-function SelectScrollUpButton({
-  className,
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.ScrollUpArrow>) {
-  return (
-    <SelectPrimitive.ScrollUpArrow
-      data-slot="select-scroll-up-button"
-      className={cn(
-        "top-0 z-10 flex w-full cursor-default items-center justify-center bg-popover py-1 [&_svg:not([class*='size-'])]:size-4",
-        className
-      )}
-      {...props}
-    >
-      <ChevronUpIcon
-      />
-    </SelectPrimitive.ScrollUpArrow>
-  )
-}
-
-function SelectScrollDownButton({
-  className,
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.ScrollDownArrow>) {
-  return (
-    <SelectPrimitive.ScrollDownArrow
-      data-slot="select-scroll-down-button"
-      className={cn(
-        "bottom-0 z-10 flex w-full cursor-default items-center justify-center bg-popover py-1 [&_svg:not([class*='size-'])]:size-4",
-        className
-      )}
-      {...props}
-    >
-      <ChevronDownIcon
-      />
-    </SelectPrimitive.ScrollDownArrow>
-  )
-}
-
-export {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectScrollDownButton,
-  SelectScrollUpButton,
-  SelectSeparator,
-  SelectTrigger,
-  SelectValue,
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "A clothing item in the boutique.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name of the piece" },
+        "category": { "type": "string", "description": "Category (e.g., dress, blouse)" },
+        "price": { "type": "number", "description": "Price of the item" },
+        "sku": { "type": "string", "description": "Internal SKU code" },
+        "description": { "type": "string", "description": "Detailed description" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" },
+        "isArchived": { "type": "boolean", "description": "Soft delete status" }
+      },
+      "required": ["name", "category", "price", "createdAt"]
+    },
+    "Variation": {
+      "title": "Variation",
+      "description": "A specific color and size combination for a product.",
+      "type": "object",
+      "properties": {
+        "productId": { "type": "string", "description": "Reference to the product" },
+        "color": { "type": "string", "description": "Color variation" },
+        "size": { "type": "string", "description": "Size variation (P, M, G, GG, etc.)" },
+        "quantity": { "type": "number", "description": "Current stock quantity" }
+      },
+      "required": ["productId", "color", "size", "quantity"]
+    },
+    "Movement": {
+      "title": "Movement",
+      "description": "Stock movement record (entry or exit).",
+      "type": "object",
+      "properties": {
+        "productId": { "type": "string", "description": "Reference to the product" },
+        "variationId": { "type": "string", "description": "Reference to the specific variation" },
+        "type": { "type": "string", "enum": ["entry", "exit"], "description": "Type of movement" },
+        "quantity": { "type": "number", "description": "Quantity moved" },
+        "date": { "type": "string", "format": "date-time", "description": "Timestamp of movement" },
+        "reason": { "type": "string", "description": "Reason for movement (e.g., sale, restock)" },
+        "variationInfo": { "type": "string", "description": "Summary of color/size" }
+      },
+      "required": ["productId", "variationId", "type", "quantity", "date"]
+    },
+    "User": {
+      "title": "User",
+      "description": "System user with specific roles and permissions.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "user"] },
+        "permissions": { "type": "array", "items": { "type": "string" } },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role", "permissions", "isActive", "createdAt"]
+    },
+    "Sale": {
+      "title": "Sale",
+      "description": "A record of a completed sale.",
+      "type": "object",
+      "properties": {
+        "clientId": { "type": "string", "description": "Reference to client (optional)" },
+        "clientName": { "type": "string", "description": "Name of the client" },
+        "date": { "type": "string", "format": "date-time", "description": "Timestamp of sale" },
+        "productId": { "type": "string", "description": "Reference to product sold" },
+        "productName": { "type": "string", "description": "Name of product at time of sale" },
+        "variationId": { "type": "string", "description": "Reference to variation sold" },
+        "variationInfo": { "type": "string", "description": "Summary of color/size" },
+        "quantity": { "type": "number", "description": "Quantity sold" },
+        "unitPrice": { "type": "number", "description": "Price per unit at time of sale" },
+        "totalValue": { "type": "number", "description": "Total value of the sale" },
+        "observation": { "type": "string", "description": "Notes about the sale" },
+        "isCancelled": { "type": "boolean", "description": "Whether the sale was cancelled" }
+      },
+      "required": ["clientName", "date", "productId", "productName", "quantity", "unitPrice", "totalValue"]
+    },
+    "Customer": {
+      "title": "Customer",
+      "description": "Boutique client information.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "observations": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "phone", "createdAt"]
+    },
+    "Reservation": {
+      "title": "Reservation",
+      "description": "Reserve a product for a specific client.",
+      "type": "object",
+      "properties": {
+        "customerId": { "type": "string" },
+        "customerName": { "type": "string" },
+        "productId": { "type": "string" },
+        "variationId": { "type": "string" },
+        "quantity": { "type": "number" },
+        "startDate": { "type": "string", "format": "date-time" },
+        "endDate": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["active", "completed", "cancelled", "expired"] }
+      },
+      "required": ["customerId", "customerName", "productId", "variationId", "quantity", "startDate", "endDate", "status"]
+    },
+    "BoutiqueSettings": {
+      "title": "BoutiqueSettings",
+      "description": "Global system configuration.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "cnpj": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "address": { "type": "string" },
+        "lowStockAlert": { "type": "number" },
+        "darkMode": { "type": "boolean" },
+        "monthlyReportEmail": { "type": "boolean" }
+      },
+      "required": ["name", "lowStockAlert"]
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "Immutable log of sensitive system actions.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "action": { "type": "string" },
+        "entityType": { "type": "string" },
+        "entityId": { "type": "string" },
+        "details": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "userEmail", "action", "entityType", "entityId", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Collection of boutique products."
+    },
+    "/products/{productId}/variations/{variationId}": {
+      "schema": "Variation",
+      "description": "Sub-collection of variations for a specific product."
+    },
+    "/movements/{movementId}": {
+      "schema": "Movement",
+      "description": "Collection of all stock movements."
+    },
+    "/sales/{saleId}": {
+      "schema": "Sale",
+      "description": "Collection of all completed sales."
+    },
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Collection of user profiles and permissions."
+    },
+    "/customers/{customerId}": {
+      "schema": "Customer",
+      "description": "Collection of boutique clients."
+    },
+    "/reservations/{reservationId}": {
+      "schema": "Reservation",
+      "description": "Collection of product reservations."
+    },
+    "/settings/global": {
+      "schema": "BoutiqueSettings",
+      "description": "Single document for global settings."
+    },
+    "/audit_logs/{logId}": {
+      "schema": "AuditLog",
+      "description": "Collection of security and activity logs."
+    }
+  }
 }

@@ -1,18 +1,178 @@
-import * as React from "react"
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: products
+    // Document ID: auto-generated
+    // Fields:
+    //   - name: string (required, 1-100 chars)
+    //   - category: string (required)
+    //   - price: number (required, positive)
+    //   - sku: string (optional)
+    //   - description: string (optional)
+    //   - imageUrl: string (optional, URL)
+    //   - createdAt: string (required, ISO 8601)
+    //
+    // Collection: products/{productId}/variations
+    // Document ID: auto-generated
+    // Fields:
+    //   - productId: string (required, matches parent)
+    //   - color: string (required, 1-50 chars)
+    //   - size: string (required, 1-10 chars)
+    //   - quantity: number (required, non-negative)
+    //
+    // Collection: movements
+    // Document ID: auto-generated
+    // Fields:
+    //   - productId: string (required)
+    //   - variationId: string (required)
+    //   - type: string (required, 'entry' or 'exit')
+    //   - quantity: number (required, positive)
+    //   - date: string (required, ISO 8601)
+    //   - reason: string (optional)
+    //
+    // ===============================================================
 
-import { cn } from "@/lib/utils"
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
 
-function Label({ className, ...props }: React.ComponentProps<"label">) {
-  return (
-    <label
-      data-slot="label"
-      className={cn(
-        "flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
-        className
-      )}
-      {...props}
-    />
-  )
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && getUserData().role == 'admin';
+    }
+
+    function hasPermission(perm) {
+      return isAuthenticated() && (isAdmin() || getUserData().metadata.permissions.hasAny([perm]) || getUserData().permissions.hasAny([perm]));
+    }
+
+    function isValidEmail(email) {
+      return email is string &&
+        email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidUrl(url) {
+      return url is string &&
+        (url.matches("^https://.*") || url.matches("^http://.*"));
+    }
+
+    function isValidDateString(dateStr) {
+      return dateStr is string &&
+        dateStr.matches("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*Z?$");
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidProduct(data) {
+      return hasOnlyAllowedFields(['name', 'category', 'price', 'sku', 'description', 'createdAt', 'updatedAt']) &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 100 &&
+             data.category is string &&
+             data.price is number && data.price >= 0 &&
+             (!('sku' in data) || (data.sku is string && data.sku.size() <= 50)) &&
+             (!('description' in data) || (data.description is string && data.description.size() <= 1000)) &&
+             (isValidDateString(data.createdAt) || data.createdAt is timestamp) &&
+             (!('updatedAt' in data) || isValidDateString(data.updatedAt) || data.updatedAt is timestamp);
+    }
+
+    function isValidVariation(data) {
+      return hasOnlyAllowedFields(['productId', 'color', 'size', 'quantity']) &&
+             data.productId is string &&
+             data.color is string && data.color.size() >= 1 && data.color.size() <= 50 &&
+             data.size is string && data.size.size() >= 1 && data.size.size() <= 10 &&
+             data.quantity is number && data.quantity >= 0;
+    }
+
+    function isValidMovement(data) {
+      return hasOnlyAllowedFields(['productId', 'variationId', 'type', 'quantity', 'date', 'reason', 'variationInfo']) &&
+             data.productId is string &&
+             data.variationId is string &&
+             data.type in ['entry', 'exit'] &&
+             data.quantity is number && data.quantity > 0 &&
+             (isValidDateString(data.date) || data.date is timestamp) &&
+             (!('reason' in data) || (data.reason is string && data.reason.size() <= 500)) &&
+             (!('variationInfo' in data) || (data.variationInfo is string && data.variationInfo.size() <= 200));
+    }
+
+    function isValidSale(data) {
+      return hasOnlyAllowedFields(['clientId', 'clientName', 'date', 'productId', 'productName', 'variationId', 'variationInfo', 'quantity', 'unitPrice', 'totalValue', 'observation']) &&
+             data.clientName is string && data.clientName.size() >= 1 && data.clientName.size() <= 100 &&
+             (isValidDateString(data.date) || data.date is timestamp) &&
+             data.productId is string &&
+             data.productName is string &&
+             data.quantity is number && data.quantity > 0 &&
+             data.unitPrice is number && data.unitPrice >= 0 &&
+             data.totalValue is number && data.totalValue >= 0 &&
+             (!('observation' in data) || (data.observation is string && data.observation.size() <= 500)) &&
+             (!('variationInfo' in data) || (data.variationInfo is string && data.variationInfo.size() <= 200));
+    }
+
+    function isValidUserProfile(data) {
+      return hasOnlyAllowedFields(['uid', 'email', 'role', 'permissions', 'isActive', 'createdAt', 'updatedAt']) &&
+             data.uid is string &&
+             data.email is string &&
+             data.role in ['admin', 'user'] &&
+             data.permissions is list &&
+             data.isActive is bool &&
+             (isValidDateString(data.createdAt) || data.createdAt is timestamp) &&
+             (!('updatedAt' in data) || isValidDateString(data.updatedAt) || data.updatedAt is timestamp);
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /settings/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if hasPermission('manage_settings');
+    }
+
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create, update: if hasPermission('manage_users') && isValidUserProfile(request.resource.data);
+      allow delete: if false;
+    }
+
+    match /products/{productId} {
+      allow read: if hasPermission('view_products');
+      allow create: if hasPermission('create_products') && isValidProduct(request.resource.data);
+      allow update: if hasPermission('edit_products') && isValidProduct(request.resource.data);
+      allow delete: if hasPermission('delete_products');
+
+      match /variations/{variationId} {
+        allow read: if hasPermission('view_products');
+        allow create: if hasPermission('edit_products') && isValidVariation(request.resource.data);
+        allow update: if (hasPermission('edit_products') || hasPermission('adjust_stock') || hasPermission('create_sales') || hasPermission('delete_sales')) && isValidVariation(request.resource.data);
+        allow delete: if hasPermission('edit_products');
+      }
+    }
+
+    match /movements/{movementId} {
+      allow read: if hasPermission('view_stock');
+      allow create: if (hasPermission('adjust_stock') || hasPermission('create_sales') || hasPermission('delete_sales')) && isValidMovement(request.resource.data);
+      allow update, delete: if false;
+    }
+
+    match /sales/{saleId} {
+      allow read: if hasPermission('view_sales');
+      allow create: if hasPermission('create_sales') && isValidSale(request.resource.data);
+      allow delete: if hasPermission('delete_sales');
+      allow update: if false;
+    }
+  }
 }
-
-export { Label }
