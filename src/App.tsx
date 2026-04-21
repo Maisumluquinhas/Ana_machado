@@ -45,75 +45,79 @@ function ProtectedRoute({
   return <>{children}</>;
 }
 
+import { ThemeProvider } from './components/ThemeContext';
+
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <Layout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<Dashboard />} />
-            
-            <Route path="produtos" element={
-              <ProtectedRoute requiredPermission="view_products">
-                <ProductList />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="produtos/novo" element={
-              <ProtectedRoute requiredPermission="create_products">
-                <ProductForm />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="produtos/:id" element={
-              <ProtectedRoute requiredPermission="view_products">
-                <ProductDetails />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="produtos/:id/editar" element={
-              <ProtectedRoute requiredPermission="edit_products">
-                <ProductForm />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="vendas" element={
-              <ProtectedRoute requiredPermission="view_reports">
-                <Sales />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="estoque" element={
-              <ProtectedRoute requiredPermission="stock_movement">
-                <Stock />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="relatorios" element={
-              <ProtectedRoute requiredPermission="view_reports">
-                <Reports />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="usuarios" element={
-              <ProtectedRoute requiredPermission="manage_users">
-                <Users />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="configuracoes" element={<Settings />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-      <Toaster position="top-right" />
+      <ThemeProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Layout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Dashboard />} />
+              
+              <Route path="produtos" element={
+                <ProtectedRoute requiredPermission="view_products">
+                  <ProductList />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="produtos/novo" element={
+                <ProtectedRoute requiredPermission="create_products">
+                  <ProductForm />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="produtos/:id" element={
+                <ProtectedRoute requiredPermission="view_products">
+                  <ProductDetails />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="produtos/:id/editar" element={
+                <ProtectedRoute requiredPermission="edit_products">
+                  <ProductForm />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="vendas" element={
+                <ProtectedRoute requiredPermission="view_reports">
+                  <Sales />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="estoque" element={
+                <ProtectedRoute requiredPermission="stock_movement">
+                  <Stock />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="relatorios" element={
+                <ProtectedRoute requiredPermission="view_reports">
+                  <Reports />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="usuarios" element={
+                <ProtectedRoute requiredPermission="manage_users">
+                  <Users />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="configuracoes" element={<Settings />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+        <Toaster position="top-right" richColors />
+      </ThemeProvider>
     </AuthProvider>
   );
 }

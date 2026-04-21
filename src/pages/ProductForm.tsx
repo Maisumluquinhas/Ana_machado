@@ -10,7 +10,9 @@ import { Textarea } from '../components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { toast } from 'sonner';
-import { ArrowLeft, Save, Plus, Trash2, Package, Loader2 } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, Package, Loader2, Tag, DollarSign, FileText, LayoutGrid, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { cn } from '../lib/utils';
 
 export default function ProductForm() {
   const { id } = useParams();
@@ -83,7 +85,6 @@ export default function ProductForm() {
 
         batch.set(productRef, productData);
 
-        // Add initial variations if any
         variations.forEach(v => {
           const varRef = doc(collection(db, 'products', productRef.id, 'variations'));
           batch.set(varRef, {
@@ -120,65 +121,76 @@ export default function ProductForm() {
 
   if (initialLoading) return (
     <div className="flex items-center justify-center h-[60vh]">
-      <Loader2 className="w-10 h-10 text-boutique-gold animate-spin" />
+      <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
+        <Loader2 className="w-12 h-12 text-accent" />
+      </motion.div>
     </div>
   );
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="rounded-full hover:bg-boutique-rose/30">
-          <ArrowLeft size={24} />
-        </Button>
-        <div>
-          <h2 className="text-3xl font-serif font-bold text-boutique-dark">
-            {isEditing ? 'Editar Peça' : 'Nova Peça'}
-          </h2>
-          <p className="text-gray-500">Preencha os detalhes da peça para o catálogo.</p>
+    <div className="max-w-5xl mx-auto space-y-10 pb-20">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex items-center gap-6">
+          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="rounded-2xl w-12 h-12 bg-card border border-border/50 text-accent group shadow-sm">
+              <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+            </Button>
+          </motion.div>
+          <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
+            <h1 className="text-4xl font-serif font-bold tracking-tight">
+              {isEditing ? 'Ajuste de Catálogo' : 'Inserção no Catálogo'}
+            </h1>
+            <p className="text-muted-foreground mt-2 font-medium">Curadoria e catalogação de peças premium</p>
+          </motion.div>
         </div>
-      </div>
+      </header>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
-        <div className="grid grid-cols-1 gap-8">
-          {/* Main Info */}
-          <Card className="boutique-card border-none shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-xl font-serif">Informações Básicas</CardTitle>
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        <div className="lg:col-span-2 space-y-8">
+          <Card className="border-none shadow-xl shadow-foreground/[0.02] overflow-hidden">
+            <CardHeader className="bg-card/50 backdrop-blur-sm border-b border-border/50 p-8">
+              <div className="flex items-center gap-3">
+                <FileText className="text-accent" size={20} />
+                <CardTitle className="text-xl font-serif">Especificações Técnicas</CardTitle>
+              </div>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="p-8 space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Nome da Peça</Label>
+                  <Label htmlFor="name" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground pl-1">Nome da Peça</Label>
                   <Input
                     id="name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     required
-                    placeholder="Ex: Vestido Midi Floral"
-                    className="h-12 rounded-xl border-gray-200 focus:ring-boutique-rose"
+                    placeholder="Ex: Vestido de Seda Pura"
+                    className="h-14 bg-muted/30 border-border/50 rounded-2xl focus:ring-accent transition-all font-medium text-lg px-6"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="sku">SKU / Código</Label>
-                  <Input
-                    id="sku"
-                    value={formData.sku}
-                    onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                    placeholder="Ex: VEST-001"
-                    className="h-12 rounded-xl border-gray-200 focus:ring-boutique-rose"
-                  />
+                  <Label htmlFor="sku" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground pl-1">Referência / SKU</Label>
+                  <div className="relative">
+                     <Tag className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50" size={18} />
+                     <Input
+                        id="sku"
+                        value={formData.sku}
+                        onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                        placeholder="REF-0000"
+                        className="h-14 pl-12 bg-muted/30 border-border/50 rounded-2xl focus:ring-accent transition-all font-mono"
+                     />
+                  </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="category">Categoria</Label>
+                  <Label htmlFor="category" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground pl-1">Categoria de Estilo</Label>
                   <Select
                     value={formData.category}
                     onValueChange={(value) => setFormData({ ...formData, category: value })}
                   >
-                    <SelectTrigger className="h-12 rounded-xl border-gray-200">
-                      <SelectValue placeholder="Selecione uma categoria" />
+                    <SelectTrigger className="h-14 bg-muted/30 border-border/50 rounded-2xl px-6">
+                      <SelectValue placeholder="Selecione..." />
                     </SelectTrigger>
                     <SelectContent>
                       {CATEGORIES.map((cat) => (
@@ -188,110 +200,136 @@ export default function ProductForm() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="price">Preço de Venda (R$)</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    step="0.01"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    required
-                    placeholder="0,00"
-                    className="h-12 rounded-xl border-gray-200 focus:ring-boutique-rose"
-                  />
+                  <Label htmlFor="price" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground pl-1">Preço Sugerido</Label>
+                  <div className="relative">
+                     <span className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-lg">R$</span>
+                     <Input
+                        id="price"
+                        type="number"
+                        step="0.01"
+                        value={formData.price}
+                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                        required
+                        placeholder="0,00"
+                        className="h-14 pl-14 bg-muted/30 border-border/50 rounded-2xl focus:ring-accent transition-all font-black text-xl"
+                     />
+                  </div>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Descrição (Opcional)</Label>
+                <Label htmlFor="description" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground pl-1">Notas de Curadoria</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Detalhes sobre o tecido, caimento, etc."
-                  className="min-h-[120px] rounded-xl border-gray-200 focus:ring-boutique-rose"
+                  placeholder="Descreva o caimento, tecido e detalhes exclusivos..."
+                  className="min-h-[160px] bg-muted/30 border-border/50 rounded-2xl focus:ring-accent transition-all p-6 text-base leading-relaxed"
                 />
               </div>
             </CardContent>
           </Card>
+
+          {!isEditing && (
+            <Card className="border-none shadow-xl shadow-foreground/[0.02] overflow-hidden">
+              <CardHeader className="bg-card/50 backdrop-blur-sm border-b border-border/50 p-8 flex flex-row items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <LayoutGrid className="text-accent" size={20} />
+                  <div>
+                     <CardTitle className="text-xl font-serif">Mappeamento de Grade</CardTitle>
+                     <CardDescription className="text-xs uppercase font-bold tracking-widest text-muted-foreground">Estoque inicial configurado por variação</CardDescription>
+                  </div>
+                </div>
+                <Button type="button" variant="ghost" onClick={addVariation} className="text-accent hover:bg-accent/10 h-10 px-4 rounded-xl gap-2 font-bold text-xs uppercase tracking-widest">
+                  <Plus size={16} />
+                  Adicionar Item
+                </Button>
+              </CardHeader>
+              <CardContent className="p-8">
+                <AnimatePresence mode="popLayout">
+                  {variations.length === 0 ? (
+                    <motion.div 
+                      initial={{ opacity: 0 }} 
+                      animate={{ opacity: 1 }} 
+                      className="text-center py-16 border-2 border-dashed border-border/50 rounded-3xl"
+                    >
+                      <Package className="mx-auto text-muted-foreground/20 mb-4" size={48} strokeWidth={1} />
+                      <p className="text-muted-foreground font-bold text-xs uppercase tracking-widest italic">Aguardando definição da grade</p>
+                    </motion.div>
+                  ) : (
+                    <div className="space-y-6">
+                      {variations.map((v, index) => (
+                        <motion.div 
+                          key={index}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.95 }}
+                          className="grid grid-cols-1 md:grid-cols-4 gap-6 p-6 bg-muted/20 border border-border/50 rounded-2xl relative group"
+                        >
+                          <div className="space-y-2">
+                            <Label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Cor</Label>
+                            <Input placeholder="Ex: Lavanda" value={v.color} onChange={(e) => updateVariation(index, 'color', e.target.value)} className="bg-background border-border/50 rounded-xl" />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Tamanho</Label>
+                            <Input placeholder="Ex: M" value={v.size} onChange={(e) => updateVariation(index, 'size', e.target.value)} className="bg-background border-border/50 rounded-xl" />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Volume</Label>
+                            <Input type="number" value={v.quantity} onChange={(e) => updateVariation(index, 'quantity', parseInt(e.target.value) || 0)} className="bg-background border-border/50 rounded-xl font-bold" />
+                          </div>
+                          <div className="flex items-end justify-end">
+                            <Button type="button" variant="ghost" size="icon" onClick={() => removeVariation(index)} className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl w-11 h-11 shrink-0">
+                              <Trash2 size={20} />
+                            </Button>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  )}
+                </AnimatePresence>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
-        {/* Variations Section (Only on creation) */}
-        {!isEditing && (
-          <Card className="boutique-card border-none shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-xl font-serif">Estoque Inicial</CardTitle>
-                <CardDescription>Adicione as variações de cor e tamanho desta peça.</CardDescription>
-              </div>
-              <Button type="button" variant="outline" onClick={addVariation} className="border-boutique-rose text-boutique-dark gap-2 rounded-xl">
-                <Plus size={18} />
-                Adicionar Variação
-              </Button>
-            </CardHeader>
-            <CardContent>
-              {variations.length === 0 ? (
-                <div className="text-center py-10 border-2 border-dashed border-gray-100 rounded-2xl">
-                  <p className="text-sm text-gray-400">Nenhuma variação adicionada ainda.</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {variations.map((v, index) => (
-                    <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-2xl relative group animate-in zoom-in-95 duration-200">
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-wider text-gray-400">Cor</Label>
-                        <Input 
-                          placeholder="Ex: Preto" 
-                          value={v.color} 
-                          onChange={(e) => updateVariation(index, 'color', e.target.value)}
-                          className="bg-white border-none rounded-xl"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-wider text-gray-400">Tamanho</Label>
-                        <Input 
-                          placeholder="Ex: M" 
-                          value={v.size} 
-                          onChange={(e) => updateVariation(index, 'size', e.target.value)}
-                          className="bg-white border-none rounded-xl"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-[10px] uppercase tracking-wider text-gray-400">Quantidade</Label>
-                        <Input 
-                          type="number" 
-                          value={v.quantity} 
-                          onChange={(e) => updateVariation(index, 'quantity', parseInt(e.target.value) || 0)}
-                          className="bg-white border-none rounded-xl"
-                        />
-                      </div>
-                      <div className="flex items-end pb-1">
-                        <Button 
-                          type="button" 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => removeVariation(index)}
-                          className="text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl"
-                        >
-                          <Trash2 size={20} />
-                        </Button>
-                      </div>
+        <div className="space-y-8">
+           <Card className="border-none shadow-xl shadow-foreground/[0.02] overflow-hidden sticky top-8">
+              <CardHeader className="bg-accent text-accent-foreground p-8">
+                 <CardTitle className="text-2xl font-serif">Publicação</CardTitle>
+                 <CardDescription className="text-accent-foreground/70 font-medium mt-1">Revise os dados antes de consolidar no catálogo.</CardDescription>
+              </CardHeader>
+              <CardContent className="p-8 space-y-6 bg-card">
+                 <div className="space-y-4">
+                    <div className="flex justify-between text-sm py-2 border-b border-border/30">
+                       <span className="text-muted-foreground font-bold uppercase tracking-widest text-[10px]">Total Grade</span>
+                       <span className="font-bold">{variations.length} tipos</span>
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
+                    <div className="flex justify-between text-sm py-2 border-b border-border/30">
+                       <span className="text-muted-foreground font-bold uppercase tracking-widest text-[10px]">Volume Inicial</span>
+                       <span className="font-bold">{variations.reduce((acc, v) => acc + v.quantity, 0)} un</span>
+                    </div>
+                    <div className="flex justify-between text-sm py-2">
+                       <span className="text-muted-foreground font-bold uppercase tracking-widest text-[10px]">Status Inicial</span>
+                       <span className="text-green-500 font-bold uppercase text-[10px] tracking-widest">Disponível</span>
+                    </div>
+                 </div>
 
-        <div className="flex justify-end gap-4">
-          <Button type="button" variant="ghost" onClick={() => navigate(-1)} className="px-8 rounded-xl">
-            Cancelar
-          </Button>
-          <Button type="submit" className="boutique-button-primary px-12 h-14 rounded-2xl shadow-xl shadow-boutique-dark/20" disabled={loading}>
-            {loading ? <Loader2 className="animate-spin mr-2" /> : <Save className="mr-2" size={20} />}
-            {isEditing ? 'Salvar Alterações' : 'Finalizar Cadastro'}
-          </Button>
+                 <div className="pt-6 space-y-3">
+                    <Button type="submit" className="w-full boutique-button-primary h-16 rounded-2xl shadow-xl shadow-primary/20 text-lg gap-3" disabled={loading}>
+                      {loading ? <Loader2 className="animate-spin" /> : (
+                        <>
+                          <Check size={24} />
+                          {isEditing ? 'Salvar Mudanças' : 'Finalizar Registro'}
+                        </>
+                      )}
+                    </Button>
+                    <Button type="button" variant="ghost" onClick={() => navigate(-1)} className="w-full text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground">
+                      Descartar Alterações
+                    </Button>
+                 </div>
+              </CardContent>
+           </Card>
         </div>
       </form>
     </div>

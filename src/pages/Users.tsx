@@ -20,15 +20,19 @@ import {
   Search, 
   Mail, 
   Shield, 
-  Edit2, 
   Settings2, 
   Loader2,
   Lock,
   CheckCircle2,
-  XCircle
+  XCircle,
+  MoreVertical,
+  Activity,
+  ShieldCheck,
+  User
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '../lib/utils';
+import { motion, AnimatePresence } from 'motion/react';
 
 const PERMISSIONS: { id: AppPermission; label: string }[] = [
   { id: 'view_products', label: 'Visualizar Produtos' },
@@ -36,6 +40,7 @@ const PERMISSIONS: { id: AppPermission; label: string }[] = [
   { id: 'edit_products', label: 'Editar Produtos' },
   { id: 'excluir_products', label: 'Excluir Produtos' },
   { id: 'stock_movement', label: 'Movimentar Estoque' },
+  { id: 'delete_sale', label: 'Excluir Vendas' },
   { id: 'view_reports', label: 'Visualizar Relatórios' },
   { id: 'manage_users', label: 'Gerenciar Usuários' },
 ];
@@ -77,7 +82,6 @@ export default function Users() {
     setIsSubmitting(true);
     let tempApp;
     try {
-      // Create a secondary app instance to create user without signing out
       const tempAppName = `temp-app-${Date.now()}`;
       tempApp = initializeApp(firebaseConfig, tempAppName);
       const tempAuth = getAuth(tempApp);
@@ -85,7 +89,6 @@ export default function Users() {
       const userCredential = await createUserWithEmailAndPassword(tempAuth, newUser.email, newUser.password);
       const uid = userCredential.user.uid;
 
-      // Create profile in Firestore using the main app
       const now = new Date().toISOString();
       const profile: UserProfile = {
         uid,
@@ -98,15 +101,12 @@ export default function Users() {
       };
 
       await setDoc(doc(db, 'users', uid), profile);
-      
-      // Sign out from temp auth and delete app
       await signOut(tempAuth);
       
       toast.success('Usuário criado com sucesso!');
       setIsAddUserOpen(false);
       setNewUser({ email: '', password: '', role: 'user', permissions: ['view_products'] });
     } catch (error: any) {
-      console.error(error);
       toast.error('Erro ao criar usuário: ' + error.message);
     } finally {
       if (tempApp) await deleteApp(tempApp);
@@ -120,7 +120,7 @@ export default function Users() {
         isActive: !user.isActive,
         updatedAt: new Date().toISOString()
       });
-      toast.success(`Usuário ${!user.isActive ? 'ativado' : 'desativado'} com sucesso.`);
+      toast.success(`Usuário ${!user.isActive ? 'ativado' : 'desativado'}!`);
     } catch (error) {
       toast.error('Erro ao atualizar status.');
     }
@@ -150,48 +150,56 @@ export default function Users() {
     u.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  if (loading) return (
+    <div className="flex items-center justify-center h-[60vh]">
+      <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
+        <UsersIcon className="w-12 h-12 text-accent" />
+      </motion.div>
+    </div>
+  );
+
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <h2 className="text-3xl font-serif font-bold text-boutique-dark">Gerenciamento de Usuários</h2>
-          <p className="text-gray-500 mt-1">Controle quem acessa o sistema e quais são suas permissões.</p>
-        </div>
+    <div className="space-y-10 pb-12">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
+          <h1 className="text-4xl font-serif font-bold tracking-tight">Time & Governança</h1>
+          <p className="text-muted-foreground mt-2 font-medium">Controle de acessos e hierarquia administrativa</p>
+        </motion.div>
         
         <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
           <DialogTrigger asChild>
-            <Button className="boutique-button-primary gap-2 h-12 px-6 rounded-2xl shadow-lg shadow-boutique-dark/10">
+            <Button className="boutique-button-primary gap-2 h-14 px-8 rounded-2xl shadow-xl shadow-primary/10">
               <UserPlus size={20} />
               Criar Usuário
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px] rounded-3xl">
-            <DialogHeader>
-              <DialogTitle className="text-2xl font-serif">Novo Usuário</DialogTitle>
-              <DialogDescription>Crie uma conta para um novo membro da equipe.</DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleAddUser} className="space-y-6 py-4">
+          <DialogContent className="sm:max-w-[550px] p-0 overflow-hidden border-none shadow-2xl">
+            <div className="bg-primary p-8 text-primary-foreground">
+              <DialogTitle className="text-3xl font-serif">Nova Credencial</DialogTitle>
+              <DialogDescription className="text-primary-foreground/70 mt-2">Conceda acesso a um novo membro do time.</DialogDescription>
+            </div>
+            <form onSubmit={handleAddUser} className="p-8 space-y-6 bg-card">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">E-mail *</Label>
+                  <Label htmlFor="email" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground pl-1">E-mail Corporativo</Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
                     <Input 
                       id="email" 
                       type="email"
                       required 
-                      placeholder="email@boutique.com"
+                      placeholder="ana@anamachado.com"
                       value={newUser.email}
                       onChange={(e) => setNewUser({...newUser, email: e.target.value})}
-                      className="pl-10 rounded-xl"
+                      className="pl-12 h-12 bg-muted/30 border-border/50 focus:ring-accent rounded-xl"
                     />
                   </div>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="password">Senha Inicial *</Label>
+                  <Label htmlFor="password" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground pl-1">Senha Temporária</Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
                     <Input 
                       id="password" 
                       type="password"
@@ -199,33 +207,33 @@ export default function Users() {
                       placeholder="Mínimo 6 caracteres"
                       value={newUser.password}
                       onChange={(e) => setNewUser({...newUser, password: e.target.value})}
-                      className="pl-10 rounded-xl"
+                      className="pl-12 h-12 bg-muted/30 border-border/50 focus:ring-accent rounded-xl"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Função</Label>
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground pl-1">Nível de Autoridade</Label>
                   <Select 
                     value={newUser.role} 
                     onValueChange={(v: 'admin' | 'user') => setNewUser({...newUser, role: v})}
                   >
-                    <SelectTrigger className="rounded-xl">
+                    <SelectTrigger className="h-12 bg-muted/30 border-border/50 rounded-xl">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="user">Usuário Comum</SelectItem>
-                      <SelectItem value="admin">Administrador</SelectItem>
+                      <SelectItem value="user">Colaborador (Permissões Custom)</SelectItem>
+                      <SelectItem value="admin">Administrador (Total Control)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 {newUser.role === 'user' && (
-                  <div className="space-y-3 pt-2">
-                    <Label className="text-sm font-semibold text-gray-700">Permissões Específicas</Label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                  <div className="space-y-4 pt-4 border-t border-border/50">
+                    <Label className="text-[11px] font-bold text-foreground">Permissões de Atuação</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-muted/20 p-6 rounded-3xl border border-border/30">
                       {PERMISSIONS.map((perm) => (
-                        <div key={perm.id} className="flex items-center space-x-2">
+                        <div key={perm.id} className="flex items-center space-x-3 group cursor-pointer">
                           <Checkbox 
                             id={`perm-${perm.id}`} 
                             checked={newUser.permissions.includes(perm.id)}
@@ -236,10 +244,11 @@ export default function Users() {
                                 setNewUser({...newUser, permissions: newUser.permissions.filter(p => p !== perm.id)});
                               }
                             }}
+                            className="rounded-md border-muted-foreground/30 data-[state=checked]:bg-accent data-[state=checked]:border-accent"
                           />
                           <Label 
                             htmlFor={`perm-${perm.id}`}
-                            className="text-xs font-medium cursor-pointer"
+                            className="text-xs font-medium cursor-pointer group-hover:text-accent transition-colors"
                           >
                             {perm.label}
                           </Label>
@@ -250,23 +259,23 @@ export default function Users() {
                 )}
               </div>
 
-              <DialogFooter>
-                <Button type="submit" className="w-full boutique-button-primary h-12 rounded-xl" disabled={isSubmitting}>
-                  {isSubmitting ? <Loader2 className="animate-spin" /> : 'Criar Conta'}
+              <div className="pt-4">
+                <Button type="submit" className="w-full boutique-button-primary h-14 rounded-2xl" disabled={isSubmitting}>
+                  {isSubmitting ? <Loader2 className="animate-spin" /> : 'Finalizar Cadastro'}
                 </Button>
-              </DialogFooter>
+              </div>
             </form>
           </DialogContent>
         </Dialog>
-      </div>
+      </header>
 
-      <Card className="boutique-card border-none shadow-sm overflow-hidden">
-        <CardHeader className="bg-white border-b border-gray-50 pb-6">
-          <div className="relative max-w-md">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+      <Card className="border-none shadow-xl shadow-foreground/[0.02] overflow-hidden">
+        <CardHeader className="bg-card/50 backdrop-blur-sm border-b border-border/50 p-6 md:p-8">
+          <div className="relative max-w-md w-full">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
             <Input
-              placeholder="Buscar por e-mail..."
-              className="pl-12 h-12 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-boutique-rose/50"
+              placeholder="Pesquisar por e-mail profissional..."
+              className="pl-12 h-12 bg-muted/20 border-border/30 rounded-2xl focus:ring-accent transition-all"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -275,157 +284,152 @@ export default function Users() {
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader className="bg-gray-50/50">
-                <TableRow className="hover:bg-transparent border-b border-gray-100">
-                  <TableHead className="pl-6 py-4">Usuário</TableHead>
-                  <TableHead>Função</TableHead>
-                  <TableHead>Permissões</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="pr-6 text-right">Ações</TableHead>
+              <TableHeader>
+                <TableRow className="bg-muted/30 hover:bg-muted/30 border-b border-border/50">
+                  <TableHead className="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Perfil Corporativo</TableHead>
+                  <TableHead className="py-5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Governança</TableHead>
+                  <TableHead className="py-5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Escopo de Atuação</TableHead>
+                  <TableHead className="py-5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground text-center">Status</TableHead>
+                  <TableHead className="pr-8 py-5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground text-right">Configurações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="h-64 text-center">
-                      <Loader2 className="animate-spin mx-auto text-boutique-gold" size={32} />
-                    </TableCell>
-                  </TableRow>
-                ) : filteredUsers.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="h-64 text-center">
-                      <div className="flex flex-col items-center justify-center text-gray-400">
-                        <UsersIcon size={48} className="mb-4 opacity-20" />
-                        <p className="text-lg font-medium">Nenhum usuário encontrado</p>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredUsers.map((user) => (
-                    <TableRow key={user.uid} className="hover:bg-boutique-rose/5 transition-colors border-b border-gray-50">
-                      <TableCell className="pl-6 py-4">
-                        <div className="flex items-center gap-3">
+                <AnimatePresence>
+                  {filteredUsers.map((user, idx) => (
+                    <motion.tr 
+                      key={user.uid}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.03 }}
+                      className="group hover:bg-accent/[0.03] transition-colors border-b border-border/30"
+                    >
+                      <TableCell className="px-8 py-5">
+                        <div className="flex items-center gap-4">
                           <div className={cn(
-                            "w-10 h-10 rounded-full flex items-center justify-center text-white font-bold",
-                            user.role === 'admin' ? "bg-boutique-dark" : "bg-boutique-gold"
+                            "w-11 h-11 rounded-2xl flex items-center justify-center text-white font-serif font-bold text-lg shadow-inner",
+                            user.role === 'admin' ? "bg-primary" : "bg-accent"
                           )}>
                             {user.email[0].toUpperCase()}
                           </div>
                           <div>
-                            <p className="font-bold text-boutique-dark">{user.email}</p>
-                            <p className="text-[10px] text-gray-400 uppercase tracking-wider font-bold">Entrou em {new Date(user.createdAt).toLocaleDateString()}</p>
+                            <p className="font-bold text-sm text-foreground">{user.email}</p>
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">Ingresso: {new Date(user.createdAt).toLocaleDateString()}</p>
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className={cn(
-                          "rounded-full px-3",
-                          user.role === 'admin' ? "bg-boutique-dark text-white border-transparent" : "border-boutique-rose text-boutique-dark"
-                        )}>
-                          {user.role === 'admin' ? 'Admin' : 'Membro'}
-                        </Badge>
+                      <TableCell className="py-5">
+                        <div className="flex items-center gap-2">
+                           {user.role === 'admin' ? <ShieldCheck size={14} className="text-primary" /> : <User size={14} className="text-muted-foreground" />}
+                           <span className={cn(
+                             "text-[10px] font-bold uppercase tracking-widest",
+                             user.role === 'admin' ? "text-primary" : "text-muted-foreground"
+                           )}>
+                             {user.role === 'admin' ? 'Administrador' : 'Gestor/User'}
+                           </span>
+                        </div>
                       </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1 max-w-[250px]">
+                      <TableCell className="py-5">
+                        <div className="flex flex-wrap gap-1.5 max-w-[280px]">
                           {user.role === 'admin' ? (
-                            <Badge variant="ghost" className="bg-gray-100 text-[10px] text-gray-500">Acesso Total</Badge>
-                          ) : user.permissions.slice(0, 2).map(p => (
-                            <Badge key={p} variant="ghost" className="bg-boutique-rose/50 text-[10px] text-boutique-gold font-bold">
-                              {PERMISSIONS.find(per => per.id === p)?.label}
-                            </Badge>
-                          ))}
-                          {user.role !== 'admin' && user.permissions.length > 2 && (
-                            <Badge variant="ghost" className="bg-gray-100 text-[10px] text-gray-500">+{user.permissions.length - 2}</Badge>
+                            <Badge variant="secondary" className="bg-primary/5 text-[10px] font-bold border-primary/20 text-primary uppercase">Soberano</Badge>
+                          ) : (
+                            <>
+                              {user.permissions.slice(0, 2).map(p => (
+                                <Badge key={p} variant="outline" className="bg-accent/5 text-[9px] font-bold border-accent/20 text-accent uppercase px-2 py-0">
+                                  {PERMISSIONS.find(per => per.id === p)?.label.split(' ')[0]}
+                                </Badge>
+                              ))}
+                              {user.permissions.length > 2 && (
+                                <Badge variant="ghost" className="text-[9px] font-bold text-muted-foreground">+{user.permissions.length - 2}</Badge>
+                              )}
+                            </>
                           )}
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <Badge variant="ghost" className={cn(
-                          "flex items-center gap-1 w-fit border-none font-bold",
-                          user.isActive ? "text-green-600 bg-green-50" : "text-gray-400 bg-gray-100"
-                        )}>
+                      <TableCell className="py-5 text-center">
+                        <motion.button 
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => handleUpdateStatus(user)}
+                          className={cn(
+                            "mx-auto flex items-center gap-2 px-3 py-1.5 rounded-full border text-[10px] font-bold uppercase tracking-wider transition-all",
+                            user.isActive 
+                              ? "bg-green-500/10 text-green-500 border-green-500/20 hover:bg-green-500/20" 
+                              : "bg-muted text-muted-foreground border-border hover:bg-muted/80"
+                          )}
+                        >
                           {user.isActive ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
-                          {user.isActive ? 'Ativo' : 'Inativo'}
-                        </Badge>
+                          {user.isActive ? 'Ativo' : 'Pausado'}
+                        </motion.button>
                       </TableCell>
-                      <TableCell className="pr-6 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="bg-gray-50 text-boutique-dark hover:bg-boutique-rose rounded-xl"
-                            onClick={() => {
-                              setEditingUser(user);
-                              setIsEditUserOpen(true);
-                            }}
-                          >
-                            <Settings2 size={18} />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className={cn(
-                              "rounded-xl",
-                              user.isActive ? "text-boutique-gold hover:bg-boutique-rose/30" : "text-green-600 hover:bg-green-50"
-                            )}
-                            onClick={() => handleUpdateStatus(user)}
-                            title={user.isActive ? 'Desativar' : 'Ativar'}
-                          >
-                            {user.isActive ? <XCircle size={18} /> : <CheckCircle2 size={18} />}
-                          </Button>
-                        </div>
+                      <TableCell className="pr-8 py-5 text-right">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="w-10 h-10 rounded-2xl text-muted-foreground hover:text-accent hover:bg-accent/10 transition-all opacity-0 group-hover:opacity-100"
+                          onClick={() => {
+                            setEditingUser(user);
+                            setIsEditUserOpen(true);
+                          }}
+                        >
+                          <Settings2 size={18} />
+                        </Button>
                       </TableCell>
-                    </TableRow>
-                  ))
-                )}
+                    </motion.tr>
+                  ))}
+                </AnimatePresence>
               </TableBody>
             </Table>
           </div>
         </CardContent>
       </Card>
 
-      {/* Edit User Permissions Dialog */}
       <Dialog open={isEditUserOpen} onOpenChange={setIsEditUserOpen}>
-        <DialogContent className="sm:max-w-[500px] rounded-3xl">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-serif">Editar Usuário</DialogTitle>
-            <DialogDescription>Gerencie funções e permissões de acesso.</DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleUpdatePermissions} className="space-y-6 py-4">
+        <DialogContent className="sm:max-w-[550px] p-0 overflow-hidden border-none shadow-2xl">
+          <div className="bg-accent p-8 text-accent-foreground relative">
+            <DialogTitle className="text-3xl font-serif">Ajuste de Credencial</DialogTitle>
+            <DialogDescription className="text-accent-foreground/70 mt-2">Atualize o escopo de atuação do usuário.</DialogDescription>
+            <Shield className="absolute -right-4 -bottom-4 w-32 h-32 opacity-10 rotate-12" />
+          </div>
+          <form onSubmit={handleUpdatePermissions} className="p-8 space-y-8 bg-card">
             {editingUser && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                  <div className="w-12 h-12 rounded-full bg-boutique-dark flex items-center justify-center text-white font-bold text-xl">
+              <div className="space-y-6">
+                <div className="flex items-center gap-5 p-6 bg-muted/30 rounded-3xl border border-border/50">
+                  <div className="w-14 h-14 rounded-2xl bg-accent text-accent-foreground flex items-center justify-center font-serif font-bold text-2xl shadow-lg border border-accent">
                     {editingUser.email[0].toUpperCase()}
                   </div>
                   <div>
-                    <p className="font-bold text-boutique-dark">{editingUser.email}</p>
-                    <p className="text-xs text-gray-500">{editingUser.isActive ? 'Conta Ativa' : 'Conta Inativa'}</p>
+                    <p className="font-bold text-foreground text-lg">{editingUser.email}</p>
+                    <p className={cn(
+                      "text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5",
+                      editingUser.isActive ? "text-green-500" : "text-muted-foreground"
+                    )}>
+                      <Activity size={10} /> {editingUser.isActive ? 'Operação Ativa' : 'Acesso Suspenso'}
+                    </p>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Função</Label>
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground pl-1">Autoridade no Sistema</Label>
                   <Select 
                     value={editingUser.role} 
                     onValueChange={(v: 'admin' | 'user') => setEditingUser({...editingUser, role: v})}
                   >
-                    <SelectTrigger className="rounded-xl">
+                    <SelectTrigger className="h-12 bg-muted/30 border-border/50 rounded-xl">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="user">Usuário Comum</SelectItem>
-                      <SelectItem value="admin">Administrador</SelectItem>
+                      <SelectItem value="user">Colaborador Especialista</SelectItem>
+                      <SelectItem value="admin">Administrador Geral</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 {editingUser.role === 'user' && (
-                  <div className="space-y-3 pt-2">
-                    <Label className="text-sm font-semibold text-gray-700">Permissões de Acesso</Label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                  <div className="space-y-4 pt-4 border-t border-border/50">
+                    <Label className="text-[11px] font-bold text-foreground">Escopo de Atuação</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-muted/20 p-6 rounded-3xl border border-border/30">
                       {PERMISSIONS.map((perm) => (
-                        <div key={perm.id} className="flex items-center space-x-2">
+                        <div key={perm.id} className="flex items-center space-x-3 group cursor-pointer">
                           <Checkbox 
                             id={`edit-perm-${perm.id}`} 
                             checked={editingUser.permissions.includes(perm.id)}
@@ -436,10 +440,11 @@ export default function Users() {
                                 setEditingUser({...editingUser, permissions: editingUser.permissions.filter(p => p !== perm.id)});
                               }
                             }}
+                            className="rounded-md border-muted-foreground/30 data-[state=checked]:bg-accent data-[state=checked]:border-accent"
                           />
                           <Label 
                             htmlFor={`edit-perm-${perm.id}`}
-                            className="text-xs font-medium cursor-pointer"
+                            className="text-xs font-medium cursor-pointer group-hover:text-accent transition-colors"
                           >
                             {perm.label}
                           </Label>
@@ -451,9 +456,9 @@ export default function Users() {
               </div>
             )}
 
-            <DialogFooter>
-              <Button type="submit" className="w-full boutique-button-primary h-12 rounded-xl" disabled={isSubmitting}>
-                {isSubmitting ? <Loader2 className="animate-spin" /> : 'Salvar Alterações'}
+            <DialogFooter className="pt-4 border-l-4 border-accent pl-4 ml-1">
+              <Button type="submit" className="w-full boutique-button-primary h-14 rounded-2xl" disabled={isSubmitting}>
+                {isSubmitting ? <Loader2 className="animate-spin" /> : 'Sincronizar Permissões'}
               </Button>
             </DialogFooter>
           </form>

@@ -5,7 +5,8 @@ export type AppPermission =
   | 'excluir_products' 
   | 'stock_movement' 
   | 'view_reports' 
-  | 'manage_users';
+  | 'manage_users'
+  | 'delete_sale';
 
 export interface UserProfile {
   uid: string;

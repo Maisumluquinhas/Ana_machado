@@ -12,11 +12,12 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { toast } from 'sonner';
-import { ArrowLeft, Edit, Plus, Minus, History, Trash2, Package, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { ArrowLeft, Edit, Plus, Minus, History, Trash2, Package, Image as ImageIcon, Loader2, DollarSign, Activity, Tag, ChevronRight, X, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '../lib/utils';
 import { useAuth } from '../lib/AuthContext';
+import { motion, AnimatePresence } from 'motion/react';
 
 export default function ProductDetails() {
   const { hasPermission } = useAuth();
@@ -64,11 +65,9 @@ export default function ProductDetails() {
     const qMovements = query(
       collection(db, 'movements'), 
       orderBy('date', 'desc'),
-      limit(10)
+      limit(20)
     );
     const unsubMovements = onSnapshot(qMovements, (snapshot) => {
-      // Filter movements for this product client-side for simplicity in this demo
-      // In production, use a proper query with productId
       const allMovements = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Movement));
       setMovements(allMovements.filter(m => m.productId === id));
     });
@@ -92,11 +91,10 @@ export default function ProductDetails() {
         ...newVar,
         quantity: Number(newVar.quantity)
       });
-      toast.success('Variação adicionada!');
+      toast.success('Variação cadastrada!');
       setIsAddVarOpen(false);
       setNewVar({ color: '', size: '', quantity: 0 });
     } catch (error) {
-      console.error(error);
       toast.error('Erro ao adicionar variação.');
     } finally {
       setIsSubmitting(false);
@@ -115,7 +113,6 @@ export default function ProductDetails() {
     try {
       const batch = writeBatch(db);
       
-      // 1. Record movement
       const movementRef = doc(collection(db, 'movements'));
       batch.set(movementRef, {
         productId: id,
@@ -127,19 +124,17 @@ export default function ProductDetails() {
         variationInfo: `${selectedVar.color} / ${selectedVar.size}`
       });
 
-      // 2. Update variation stock
       const varRef = doc(db, 'products', id!, 'variations', selectedVar.id);
       batch.update(varRef, {
         quantity: increment(movementType === 'entry' ? moveQty : -moveQty)
       });
 
       await batch.commit();
-      toast.success(`Estoque atualizado: ${movementType === 'entry' ? 'Entrada' : 'Saída'}`);
+      toast.success('Movimentação registrada com sucesso!');
       setIsMovementOpen(false);
       setMoveQty(1);
       setMoveReason('');
     } catch (error) {
-      console.error(error);
       toast.error('Erro ao atualizar estoque.');
     } finally {
       setIsSubmitting(false);
@@ -148,307 +143,285 @@ export default function ProductDetails() {
 
   const handleDeleteProduct = async () => {
     if (!product) return;
-    if (!confirm(`Tem certeza que deseja excluir "${product.name}" e todas as suas variações? Esta ação não pode ser desfeita.`)) return;
+    if (!confirm(`Confirmar exclusão definitiva de "${product.name}"?`)) return;
     
     setIsSubmitting(true);
-    const toastId = toast.loading('Excluindo produto...');
+    const toastId = toast.loading('Excluindo do catálogo...');
     
     try {
-      console.log(`Iniciando exclusão do produto: ${id} (${product.name})`);
-
-      // 1. Delete variations
-      console.log('Buscando variações para excluir...');
       const varSnapshot = await getDocs(collection(db, 'products', id!, 'variations'));
       const batch = writeBatch(db);
       
-      console.log(`Encontradas ${varSnapshot.size} variações.`);
-      varSnapshot.forEach(vDoc => {
-        batch.delete(vDoc.ref);
-      });
-
-      // 2. Delete product document
-      console.log('Adicionando exclusão do produto ao batch.');
+      varSnapshot.forEach(vDoc => { batch.delete(vDoc.ref); });
       batch.delete(doc(db, 'products', id!));
       
       await batch.commit();
-      console.log('Batch de exclusão executado com sucesso.');
-      
-      toast.success('Produto excluído com sucesso!', { id: toastId });
+      toast.success('Produto removido.', { id: toastId });
       navigate('/produtos');
     } catch (error: any) {
-      console.error('ERRO CRÍTICO NA EXCLUSÃO:', error);
-      toast.error(`Erro ao excluir produto: ${error.message || 'Erro desconhecido'}`, { id: toastId });
+      toast.error(`Erro: ${error.message}`, { id: toastId });
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDeleteVariation = async (varId: string) => {
-    if (!confirm('Tem certeza que deseja remover esta variação?')) return;
-    
+    if (!confirm('Excluir esta variação específica?')) return;
     try {
       await deleteDoc(doc(db, 'products', id!, 'variations', varId));
       toast.success('Variação removida.');
     } catch (error) {
-      console.error(error);
-      toast.error('Erro ao remover variação.');
+      toast.error('Erro operacional.');
     }
   };
 
-  if (loading || !product) return <div className="flex items-center justify-center h-64">Carregando detalhes...</div>;
+  if (loading || !product) return (
+    <div className="flex items-center justify-center h-[60vh]">
+      <Loader2 className="w-10 h-10 text-accent animate-spin" />
+    </div>
+  );
 
   const totalStock = variations.reduce((acc, v) => acc + v.quantity, 0);
 
   return (
-    <div className="space-y-8 pb-12">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/produtos')} className="rounded-full">
-            <ArrowLeft size={24} />
-          </Button>
-          <div>
-            <h2 className="text-3xl font-serif font-bold text-boutique-dark">{product.name}</h2>
-            <p className="text-gray-500">{product.category} • {product.sku || 'Sem SKU'}</p>
-          </div>
+    <div className="space-y-10 pb-12">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex items-center gap-6">
+          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+            <Button variant="ghost" size="icon" onClick={() => navigate('/produtos')} className="rounded-2xl w-12 h-12 bg-card border border-border/50 text-accent group shadow-sm hover:bg-accent hover:text-accent-foreground">
+              <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+            </Button>
+          </motion.div>
+          <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
+            <h1 className="text-4xl font-serif font-bold tracking-tight">{product.name}</h1>
+            <div className="flex items-center gap-2 mt-1">
+              <Tag size={12} className="text-accent" />
+              <p className="text-muted-foreground font-bold text-xs uppercase tracking-widest">{product.category} • REF: {product.sku || 'NÃO DEFINIDO'}</p>
+            </div>
+          </motion.div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           {hasPermission('edit_products') && (
             <Link to={`/produtos/${id}/editar`}>
-              <Button variant="outline" className="border-boutique-rose text-boutique-dark gap-2">
+              <Button variant="outline" className="h-12 px-6 rounded-2xl border-border/50 text-foreground font-bold gap-2 hover:bg-muted/50">
                 <Edit size={18} />
-                Editar Peça
+                Editar Catálogo
               </Button>
             </Link>
           )}
           {hasPermission('excluir_products') && (
             <Button 
-              variant="outline" 
-              className="border-red-200 text-red-600 hover:bg-red-50 gap-2"
+              variant="ghost" 
+              className="h-12 px-6 rounded-2xl text-destructive hover:bg-destructive/10 font-bold gap-2"
               onClick={handleDeleteProduct}
               disabled={isSubmitting}
             >
               <Trash2 size={18} />
-              Excluir
+              Remover
             </Button>
           )}
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Product Info Card */}
-        <Card className="boutique-card lg:col-span-1 h-fit">
-          <CardHeader className="bg-boutique-rose/10 rounded-t-xl">
-            <div className="flex items-center gap-3">
-              <Package className="text-boutique-gold" size={24} />
-              <CardTitle className="text-lg font-serif">Resumo da Peça</CardTitle>
+        <div className="lg:col-span-1 space-y-8">
+          <Card className="border-none shadow-xl shadow-foreground/[0.02] overflow-hidden group">
+            <div className="h-48 bg-muted/30 relative flex items-center justify-center overflow-hidden">
+               {product.imageUrl ? (
+                  <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" referrerPolicy="no-referrer" />
+               ) : (
+                  <Package className="text-muted-foreground/20 w-16 h-16" strokeWidth={1} />
+               )}
+               <div className="absolute top-4 right-4">
+                  <Badge className="bg-accent/90 backdrop-blur-md text-accent-foreground border-none font-bold shadow-lg">In Premium List</Badge>
+               </div>
             </div>
-          </CardHeader>
-          <CardContent className="p-6 space-y-4">
-            <div className="flex justify-between items-end">
-              <div>
-                <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">Preço</p>
-                <p className="text-2xl font-bold text-boutique-dark">
-                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.price)}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">Estoque Total</p>
-                <Badge className="text-lg px-3 py-1 bg-boutique-rose text-boutique-dark hover:bg-boutique-rose">
-                  {totalStock} un
-                </Badge>
-              </div>
-            </div>
-            {product.description && (
-              <div className="pt-4 border-t border-boutique-rose/20">
-                <p className="text-xs text-gray-400 uppercase tracking-widest mb-2">Descrição</p>
-                <p className="text-sm text-gray-600 leading-relaxed">{product.description}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            <CardContent className="p-8 space-y-4">
+               <div>
+                  <p className="text-[10px] font-bold text-accent uppercase tracking-widest mb-1">Preço de Etiqueta</p>
+                  <p className="text-4xl font-sans font-bold text-foreground">
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.price)}
+                  </p>
+               </div>
+               
+               <div className="pt-6 border-t border-border/50">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Estoque Consolidado</p>
+                  <div className="flex items-end justify-between">
+                     <p className="text-3xl font-bold">{totalStock} <span className="text-lg font-medium text-muted-foreground">peças</span></p>
+                     <div className={cn(
+                        "flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase",
+                        totalStock < 5 ? "bg-red-500/10 text-red-500" : "bg-green-500/10 text-green-500"
+                     )}>
+                        <Activity size={12} />
+                        {totalStock < 5 ? 'Crítico' : 'Saudável'}
+                     </div>
+                  </div>
+               </div>
 
-        {/* Variations Management */}
+               {product.description && (
+                  <div className="pt-6 border-t border-border/50">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2 font-serif italic">Curadoria & Detalhes</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed font-medium">{product.description}</p>
+                  </div>
+               )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-none shadow-xl shadow-foreground/[0.02] overflow-hidden">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg font-serif">Fluxo de Giro</CardTitle>
+              <CardDescription>Histórico de movimentação local</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {movements.length === 0 ? (
+                <div className="py-10 text-center opacity-30">
+                   <History size={32} className="mx-auto mb-2" />
+                   <p className="text-xs font-bold uppercase tracking-widest">Sem registros</p>
+                </div>
+              ) : (
+                movements.map((m, idx) => (
+                  <div key={m.id} className="flex items-center gap-4 relative">
+                    {idx !== movements.length - 1 && <div className="absolute left-5 top-10 bottom-0 w-px bg-border/50" />}
+                    <div className={cn(
+                      "w-10 h-10 rounded-full flex items-center justify-center z-10 shrink-0",
+                      m.type === 'entry' ? "bg-green-500/10 text-green-500 border border-green-500/20" : "bg-red-500/10 text-red-500 border border-red-500/20"
+                    )}>
+                      {m.type === 'entry' ? <Plus size={16} /> : <Minus size={16} />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold leading-none mb-1">
+                        {(m as any).variationInfo || 'Variação'}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground font-bold tracking-tight">
+                        {format(new Date(m.date), "dd MMM HH:mm", { locale: ptBR })}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                       <p className={cn("text-xs font-black", m.type === 'entry' ? "text-green-500" : "text-red-500")}>
+                          {m.type === 'entry' ? '+' : '-'}{m.quantity}
+                       </p>
+                       <p className="text-[9px] font-bold text-muted-foreground uppercase">{m.type === 'entry' ? 'Entrada' : 'Saída'}</p>
+                    </div>
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
         <div className="lg:col-span-2 space-y-8">
-          <Card className="boutique-card">
-            <CardHeader className="flex flex-row items-center justify-between">
+          <Card className="border-none shadow-xl shadow-foreground/[0.02] overflow-hidden">
+            <CardHeader className="flex flex-row items-center justify-between pb-8 pt-8 px-8">
               <div>
-                <CardTitle className="text-xl">Variações e Estoque</CardTitle>
-                <CardDescription>Controle de cores e tamanhos disponíveis.</CardDescription>
+                <CardTitle className="text-2xl font-serif">Almanaque de Variações</CardTitle>
+                <CardDescription>Gestão granular de cores, tamanhos e disponibilidade</CardDescription>
               </div>
               {hasPermission('edit_products') && (
                 <Dialog open={isAddVarOpen} onOpenChange={setIsAddVarOpen}>
                   <DialogTrigger asChild>
-                    <Button className="boutique-button-primary gap-2">
+                    <Button className="boutique-button-primary gap-2 h-12 px-6 rounded-2xl shadow-lg">
                       <Plus size={18} />
-                      Adicionar Variação
+                      Nova Variação
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                      <DialogTitle>Nova Variação</DialogTitle>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="color" className="text-right">Cor</Label>
-                        <Input 
-                          id="color" 
-                          className="col-span-3" 
-                          placeholder="Ex: Preto" 
-                          value={newVar.color}
-                          onChange={(e) => setNewVar({...newVar, color: e.target.value})}
-                        />
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="size" className="text-right">Tamanho</Label>
-                        <Input 
-                          id="size" 
-                          className="col-span-3" 
-                          placeholder="Ex: M" 
-                          value={newVar.size}
-                          onChange={(e) => setNewVar({...newVar, size: e.target.value})}
-                        />
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="qty" className="text-right">Estoque Inicial</Label>
-                        <Input 
-                          id="qty" 
-                          type="number" 
-                          className="col-span-3" 
-                          value={newVar.quantity}
-                          onChange={(e) => setNewVar({...newVar, quantity: parseInt(e.target.value) || 0})}
-                        />
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button variant="ghost" onClick={() => setIsAddVarOpen(false)}>Cancelar</Button>
-                      <Button onClick={handleAddVariation} className="boutique-button-primary" disabled={isSubmitting}>
-                        {isSubmitting ? <Loader2 className="animate-spin" /> : 'Salvar'}
-                      </Button>
-                    </DialogFooter>
+                  <DialogContent className="sm:max-w-[480px] p-0 overflow-hidden border-none shadow-2xl">
+                     <div className="bg-accent p-8 text-accent-foreground">
+                        <DialogTitle className="text-3xl font-serif">Adicionar Variação</DialogTitle>
+                        <DialogDescription className="text-accent-foreground/70 mt-2 font-medium">Configure cor e tamanho para o estoque.</DialogDescription>
+                     </div>
+                     <div className="p-8 space-y-6 bg-card">
+                        <div className="grid grid-cols-2 gap-4">
+                           <div className="space-y-2">
+                              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground pl-1">Cor</Label>
+                              <Input placeholder="Ex: Off-White" value={newVar.color} onChange={(e) => setNewVar({...newVar, color: e.target.value})} className="h-12 bg-muted/30 border-border/50 rounded-xl" />
+                           </div>
+                           <div className="space-y-2">
+                              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground pl-1">Tamanho</Label>
+                              <Input placeholder="Ex: P/M/G" value={newVar.size} onChange={(e) => setNewVar({...newVar, size: e.target.value})} className="h-12 bg-muted/30 border-border/50 rounded-xl" />
+                           </div>
+                        </div>
+                        <div className="space-y-2">
+                           <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground pl-1">Estoque Inicial</Label>
+                           <Input type="number" value={newVar.quantity} onChange={(e) => setNewVar({...newVar, quantity: parseInt(e.target.value) || 0})} className="h-12 bg-muted/30 border-border/50 rounded-xl" />
+                        </div>
+                        <DialogFooter className="pt-4">
+                           <Button onClick={handleAddVariation} className="w-full boutique-button-primary h-14 rounded-2xl" disabled={isSubmitting}>
+                              {isSubmitting ? <Loader2 className="animate-spin" /> : 'Sincronizar Variação'}
+                           </Button>
+                        </DialogFooter>
+                     </div>
                   </DialogContent>
                 </Dialog>
               )}
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-8 pb-8">
               {variations.length === 0 ? (
-                <div className="text-center py-12 border-2 border-dashed border-boutique-rose rounded-xl">
-                  <Package className="mx-auto text-boutique-gold/30 mb-2" size={48} />
-                  <p className="text-gray-500">Nenhuma variação cadastrada.</p>
-                  <p className="text-xs text-gray-400">Adicione cores e tamanhos para começar.</p>
+                <div className="text-center py-24 bg-muted/20 border-2 border-dashed border-border/50 rounded-3xl">
+                  <Package className="mx-auto text-muted-foreground/20 mb-4" size={64} strokeWidth={1} />
+                  <p className="text-muted-foreground font-bold text-sm uppercase tracking-widest">Sem variações ativas no sistema</p>
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Cor</TableHead>
-                      <TableHead>Tamanho</TableHead>
-                      <TableHead className="text-center">Estoque</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {variations.map((v) => (
-                      <TableRow key={v.id}>
-                        <TableCell className="font-medium">{v.color}</TableCell>
-                        <TableCell>{v.size}</TableCell>
-                        <TableCell className="text-center">
-                          <Badge className={cn(
-                            "px-3 py-1",
-                            v.quantity < 3 ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
-                          )}>
-                            {v.quantity} un
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right space-x-2">
-                          {hasPermission('stock_movement') && (
-                            <>
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                className="h-8 w-8 p-0 border-green-200 text-green-600 hover:bg-green-50"
-                                onClick={() => {
-                                  setSelectedVar(v);
-                                  setMovementType('entry');
-                                  setIsMovementOpen(true);
-                                }}
-                              >
-                                <Plus size={16} />
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                className="h-8 w-8 p-0 border-red-200 text-red-600 hover:bg-red-50"
-                                onClick={() => {
-                                  setSelectedVar(v);
-                                  setMovementType('exit');
-                                  setIsMovementOpen(true);
-                                }}
-                              >
-                                <Minus size={16} />
-                              </Button>
-                            </>
-                          )}
-                          {hasPermission('edit_products') && (
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-8 w-8 p-0 text-gray-400 hover:text-destructive"
-                              onClick={() => handleDeleteVariation(v.id)}
-                            >
-                              <Trash2 size={16} />
-                            </Button>
-                          )}
-                        </TableCell>
+                <div className="overflow-hidden rounded-2xl border border-border/50">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/30 hover:bg-muted/30 border-b border-border/50">
+                        <TableHead className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Coloração / Atributo</TableHead>
+                        <TableHead className="py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Modelagem / Tamanho</TableHead>
+                        <TableHead className="py-4 text-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Disponibilidade</TableHead>
+                        <TableHead className="pr-6 py-4 text-right text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Gestão Ativa</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Recent Movements */}
-          <Card className="boutique-card">
-            <CardHeader>
-              <CardTitle className="text-xl flex items-center gap-2">
-                <History size={20} className="text-boutique-gold" />
-                Histórico Recente
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {movements.length === 0 ? (
-                <p className="text-center py-4 text-gray-500 text-sm">Nenhuma movimentação registrada.</p>
-              ) : (
-                <div className="space-y-4">
-                  {movements.map((m) => (
-                    <div key={m.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 border border-gray-100 text-sm">
-                      <div className="flex items-center gap-3">
-                        <div className={cn(
-                          "p-2 rounded-full",
-                          m.type === 'entry' ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"
-                        )}>
-                          {m.type === 'entry' ? <Plus size={14} /> : <Minus size={14} />}
-                        </div>
-                        <div>
-                          <p className="font-medium text-boutique-dark">
-                            {(m as any).variationInfo || 'Variação'}
-                          </p>
-                          <p className="text-xs text-gray-400">
-                            {format(new Date(m.date), "dd 'de' MMMM, HH:mm", { locale: ptBR })}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className={cn(
-                          "font-bold",
-                          m.type === 'entry' ? "text-green-600" : "text-red-600"
-                        )}>
-                          {m.type === 'entry' ? '+' : '-'}{m.quantity} un
-                        </p>
-                        {m.reason && <p className="text-[10px] text-gray-400 italic">{m.reason}</p>}
-                      </div>
-                    </div>
-                  ))}
+                    </TableHeader>
+                    <TableBody>
+                      {variations.map((v) => (
+                        <TableRow key={v.id} className="hover:bg-accent/[0.02] border-b border-border/30">
+                          <TableCell className="px-6 py-5 font-bold text-sm">{v.color}</TableCell>
+                          <TableCell className="py-5 font-bold text-sm">{v.size}</TableCell>
+                          <TableCell className="py-5 text-center">
+                            <Badge variant="outline" className={cn(
+                              "px-3 py-1 rounded-lg border-2 font-bold",
+                              v.quantity < 3 ? "bg-red-500/5 text-red-500 border-red-500/20" : "bg-green-500/5 text-green-500 border-green-500/20"
+                            )}>
+                              {v.quantity} peças
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="pr-6 py-5 text-right">
+                             <div className="flex justify-end gap-1">
+                                {hasPermission('stock_movement') && (
+                                  <>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="icon" 
+                                      className="w-9 h-9 rounded-xl text-green-500 hover:bg-green-500/10"
+                                      onClick={() => { setSelectedVar(v); setMovementType('entry'); setIsMovementOpen(true); }}
+                                    >
+                                      <Plus size={16} />
+                                    </Button>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="icon" 
+                                      className="w-9 h-9 rounded-xl text-destructive hover:bg-destructive/10"
+                                      onClick={() => { setSelectedVar(v); setMovementType('exit'); setIsMovementOpen(true); }}
+                                    >
+                                      <Minus size={16} />
+                                    </Button>
+                                  </>
+                                )}
+                                {hasPermission('edit_products') && (
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="w-9 h-9 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                    onClick={() => handleDeleteVariation(v.id)}
+                                  >
+                                    <Trash2 size={16} />
+                                  </Button>
+                                )}
+                             </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
               )}
             </CardContent>
@@ -458,51 +431,67 @@ export default function ProductDetails() {
 
       {/* Movement Modal */}
       <Dialog open={isMovementOpen} onOpenChange={setIsMovementOpen}>
-        <DialogContent className="sm:max-w-[400px]">
-          <DialogHeader>
-            <DialogTitle>
-              {movementType === 'entry' ? 'Entrada de Estoque' : 'Saída de Estoque'}
-            </DialogTitle>
-            <DialogDescription>
+        <DialogContent className="sm:max-w-[450px] p-0 overflow-hidden border-none shadow-2xl">
+          <div className={cn(
+            "p-8 text-white relative overflow-hidden",
+            movementType === 'entry' ? "bg-accent" : "bg-destructive"
+          )}>
+            <DialogTitle className="text-3xl font-serif">Manejo de Estoque</DialogTitle>
+            <DialogDescription className="text-white/70 mt-2 font-medium">
               {selectedVar?.color} / {selectedVar?.size}
             </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="moveQty" className="text-right">Quantidade</Label>
-              <Input 
-                id="moveQty" 
-                type="number" 
-                min="1"
-                className="col-span-3" 
-                value={moveQty}
-                onChange={(e) => setMoveQty(parseInt(e.target.value) || 1)}
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="reason" className="text-right">Motivo</Label>
-              <Input 
-                id="reason" 
-                className="col-span-3" 
-                placeholder="Ex: Venda, Reposição..." 
-                value={moveReason}
-                onChange={(e) => setMoveReason(e.target.value)}
-              />
-            </div>
+            <Activity className="absolute -right-4 -bottom-4 w-32 h-32 opacity-10 rotate-12" />
+            <button onClick={() => setIsMovementOpen(false)} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/10 flex items-center justify-center hover:bg-black/20"><X size={16} /></button>
           </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setIsMovementOpen(false)}>Cancelar</Button>
-            <Button 
-              onClick={handleMovement} 
-              className={cn(
-                "px-8",
-                movementType === 'entry' ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"
-              )}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? <Loader2 className="animate-spin" /> : 'Confirmar'}
-            </Button>
-          </DialogFooter>
+          <div className="p-8 space-y-6 bg-card">
+            <div className="space-y-4">
+               <div className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl border border-border/50">
+                  <div>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Estoque Atual</p>
+                    <p className="text-2xl font-black">{selectedVar?.quantity || 0} un</p>
+                  </div>
+                  <ChevronRight className="text-muted-foreground/30" />
+                  <div className="text-right">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Novo Total</p>
+                    <p className={cn("text-2xl font-black", movementType === 'entry' ? "text-accent" : "text-destructive")}>
+                       {movementType === 'entry' ? (selectedVar?.quantity || 0) + moveQty : (selectedVar?.quantity || 0) - moveQty} un
+                    </p>
+                  </div>
+               </div>
+
+               <div className="space-y-2">
+                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground pl-1">Quantidade</Label>
+                 <Input 
+                   type="number" 
+                   min="1"
+                   value={moveQty}
+                   onChange={(e) => setMoveQty(parseInt(e.target.value) || 1)}
+                   className="h-14 bg-muted/30 border-border/50 rounded-2xl text-center font-black text-2xl"
+                 />
+               </div>
+               <div className="space-y-2">
+                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground pl-1">Justificativa</Label>
+                 <Input 
+                   placeholder="Ex: Nota Fiscal 344, Devolução..." 
+                   value={moveReason}
+                   onChange={(e) => setMoveReason(e.target.value)}
+                   className="h-12 bg-muted/30 border-border/50 rounded-xl"
+                 />
+               </div>
+            </div>
+            <DialogFooter>
+              <Button 
+                onClick={handleMovement} 
+                className={cn(
+                  "w-full h-14 rounded-2xl shadow-xl font-bold uppercase tracking-widest",
+                  movementType === 'entry' ? "boutique-button-primary" : "bg-destructive text-white hover:bg-destructive/90"
+                )}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? <Loader2 className="animate-spin" /> : 'Processar Manual'}
+              </Button>
+            </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
